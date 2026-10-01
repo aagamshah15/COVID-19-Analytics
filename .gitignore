@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Virtual env
+venv/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# Mac artifacts
+.DS_Store
+
+# Generated data/reports artifacts (keep folders)
+data/raw/*.csv
+data/processed/*.csv
+reports/*.csv
+reports/*.json
+warehouse/*.duckdb
+
+# Archives / local tool history
+data.zip
+__MACOSX/
+.Rhistory

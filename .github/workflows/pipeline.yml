@@ -1,0 +1,38 @@
+name: covid-pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 12 * * *' # 12:30 UTC daily
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run full pipeline
+        run: |
+          python -m src.cli run --start-date 2020-01-01 --end-date 2023-12-31 --dq-threshold 99.5
+          python -m src.cli forecast --top-n 5 --horizon-weeks 12
+          python -m src.cli tableau-extract --include-top5-forecasts
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: covid-pipeline-reports
+          path: |
+            reports/
+            data/processed/
+            warehouse/covid_dw.duckdb
