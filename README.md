@@ -1,6 +1,6 @@
-# COVID-19 Global Healthcare Burden Pipeline
+# COVID-19 Analytics
 
-An end-to-end analytics pipeline that turns the two reference COVID-19 datasets, **Our World in Data** and the **WHO**, into a tested, quality-gated star-schema warehouse, a 22-query SQL analysis pack, a weekly deaths forecast with an honest backtest, and a dashboard-ready extract.
+A global healthcare burden pipeline: an end-to-end analytics project that turns the two reference COVID-19 datasets, **Our World in Data** and the **WHO**, into a tested, quality-gated star-schema warehouse, a 22-query SQL analysis pack, a weekly deaths forecast with an honest backtest, and a dashboard-ready extract.
 
 **Coverage:** 239 countries and territories, 1 Jan 2020 to 31 Dec 2023, daily and weekly grain.
 **Runtime:** about 30 seconds end to end on a laptop, plus about 20 seconds to download the sources.
