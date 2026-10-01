@@ -1,38 +1,38 @@
-name: covid-pipeline
+name: pipeline
 
+# Rebuilds every layer from the live OWID + WHO sources. The analysis window (2020-2023) is
+# historical, so a weekly run is enough to pick up upstream revisions.
 on:
   workflow_dispatch:
+    inputs:
+      end_date:
+        description: "Analysis window end date"
+        default: "2023-12-31"
   schedule:
-    - cron: '30 12 * * *' # 12:30 UTC daily
+    - cron: "30 6 * * 1" # Mondays 06:30 UTC
 
 jobs:
-  run-etl:
+  run:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run full pipeline
-        run: |
-          python -m src.cli run --start-date 2020-01-01 --end-date 2023-12-31 --dq-threshold 99.5
-          python -m src.cli forecast --top-n 5 --horizon-weeks 12
-          python -m src.cli tableau-extract --include-top5-forecasts
-
-      - name: Upload reports
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e .
+      - name: Run pipeline (fails if the data quality gate fails)
+        run: covid-pipeline run --end-date "${{ inputs.end_date || '2023-12-31' }}"
+      - name: Upload outputs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: covid-pipeline-reports
+          name: covid-pipeline-outputs
           path: |
             reports/
-            data/processed/
+            data/raw/manifest.json
+            data/processed/tableau_exec_extract.csv
+            data/processed/forecast_weekly_deaths.csv
             warehouse/covid_dw.duckdb

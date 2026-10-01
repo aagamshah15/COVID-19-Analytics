@@ -1,26 +1,27 @@
 # Python
 __pycache__/
 *.pyc
+*.egg-info/
 .pytest_cache/
+.ruff_cache/
 
-# Virtual env
+# Virtual envs
 venv/
+.venv/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
-notebooks/.ipynb_checkpoints/
 
-# Mac artifacts
+# OS / tool artifacts
 .DS_Store
-
-# Generated data/reports artifacts (keep folders)
-data/raw/*.csv
-data/processed/*.csv
-reports/*.csv
-reports/*.json
-warehouse/*.duckdb
-
-# Archives / local tool history
-data.zip
-__MACOSX/
 .Rhistory
+__MACOSX/
+
+# Generated data (rebuild with `covid-pipeline run`). Small reports stay versioned.
+data/raw/*
+!data/raw/manifest.json
+data/processed/
+data/archive/
+data.zip
+warehouse/*.duckdb
+warehouse/*.duckdb.wal

@@ -1,0 +1,17 @@
+name,severity,passed,observed,expectation
+daily_not_empty,error,True,"345,492 rows",> 0 rows
+coverage_reaches_end_date,error,True,latest date 2023-12-31,within 14 days of 2023-12-31
+coverage_starts_at_start_date,error,True,earliest date 2020-01-01,within 14 days of 2020-01-01
+country_count,error,True,239,>= 150
+daily_keys_not_null,error,True,0 rows,0 rows with null iso_code/date/location
+daily_unique_iso_date,error,True,0 duplicates,0
+weekly_unique_iso_week,error,True,0 duplicates,0
+flows_non_negative,error,True,0 rows,0 negative new_cases/new_deaths
+total_deaths_monotonic,warn,False,27 decreases,cumulative deaths never decrease
+negative_revisions_clipped,warn,False,71 rows clipped to 0,no negative revisions in source
+vaccination_rate_plausible,warn,False,Gibraltar,vaccination_rate <= 1.1
+case_fatality_rate_lte_1,error,True,0 rows,case_fatality_rate <= 1
+cumulative_deaths_lte_cases,warn,False,"221 rows (Botswana, France, Germany, Mauritania, Peru, Zimbabwe)",source never reports more deaths than cases (CFR nulled where it does)
+who_join_match_rate,warn,True,98.66%,>= 90.00%
+death_reporting_active_at_end,warn,False,27 countries stopped reporting (1430 gap weeks nulled),every country still reporting deaths in the final week
+vaccination_coverage_2022,warn,True,90.64%,>= 60.00% of 2022 country-weeks

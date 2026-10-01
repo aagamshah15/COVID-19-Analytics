@@ -1,0 +1,16 @@
+{
+  "owid": {
+    "url": "https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv",
+    "path": "data/raw/owid_covid_compact.csv",
+    "fetched_at_utc": "2026-10-01T03:36:14+00:00",
+    "bytes": 182249932,
+    "sha256": "5318e2975f058e4c4e640cc424b9a92e7b347c4f2ba017c9520dc9b252766fe2"
+  },
+  "who": {
+    "url": "https://srhdpeuwpubsa.blob.core.windows.net/whdh/COVID/WHO-COVID-19-global-daily-data.csv",
+    "path": "data/raw/who_covid_daily.csv",
+    "fetched_at_utc": "2026-10-01T03:36:24+00:00",
+    "bytes": 26553053,
+    "sha256": "47afc78d45fa38929d9c66b401a222292ba4b9d4159cfe30b97d2baee7c63b2e"
+  }
+}

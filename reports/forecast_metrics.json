@@ -1,0 +1,177 @@
+{
+  "model": "global_hgb_delta_blend",
+  "target": "weekly deaths (modelled as log1p deaths per million)",
+  "horizon_weeks": 8,
+  "origin_date": "2023-12-31",
+  "focus_countries": {
+    "USA": "United States",
+    "IND": "India",
+    "RUS": "Russia",
+    "ITA": "Italy",
+    "FRA": "France"
+  },
+  "training_universe": "161 countries with population >= 1,000,000",
+  "not_forecast_reporting_stopped": [
+    "Argentina",
+    "Austria",
+    "Belarus",
+    "Belgium",
+    "Brazil",
+    "Cambodia",
+    "Colombia",
+    "Costa Rica",
+    "Germany",
+    "Japan",
+    "Kyrgyzstan",
+    "Laos",
+    "Mexico",
+    "Netherlands",
+    "Norway",
+    "Paraguay",
+    "Peru",
+    "Puerto Rico",
+    "Serbia",
+    "Somalia",
+    "South Africa",
+    "South Korea",
+    "Spain",
+    "Turkey",
+    "Ukraine",
+    "United Kingdom",
+    "Uzbekistan"
+  ],
+  "method": "log-space change model blended with persistence (weight 0.5)",
+  "baseline": "naive persistence: every future week equals the last observed week",
+  "backtest": {
+    "folds": 6,
+    "fold_weeks": 13,
+    "first_cutoff": "2022-07-03",
+    "all_countries": {
+      "mae_deaths": 33.98,
+      "mae_naive_deaths": 39.01,
+      "wape": 0.6207,
+      "skill_vs_naive": 0.129,
+      "n": 84472
+    },
+    "focus_countries": {
+      "mae_deaths": 177.72,
+      "mae_naive_deaths": 192.72,
+      "wape": 0.2997,
+      "skill_vs_naive": 0.0778,
+      "n": 2760
+    },
+    "by_horizon_focus": {
+      "1": {
+        "mae_deaths": 96.93,
+        "mae_naive_deaths": 98.6,
+        "wape": 0.1591,
+        "skill_vs_naive": 0.0169,
+        "n": 366
+      },
+      "2": {
+        "mae_deaths": 119.52,
+        "mae_naive_deaths": 130.26,
+        "wape": 0.1971,
+        "skill_vs_naive": 0.0825,
+        "n": 360
+      },
+      "3": {
+        "mae_deaths": 151.56,
+        "mae_naive_deaths": 162.94,
+        "wape": 0.2521,
+        "skill_vs_naive": 0.0698,
+        "n": 354
+      },
+      "4": {
+        "mae_deaths": 164.89,
+        "mae_naive_deaths": 188.54,
+        "wape": 0.2768,
+        "skill_vs_naive": 0.1254,
+        "n": 348
+      },
+      "5": {
+        "mae_deaths": 177.36,
+        "mae_naive_deaths": 214.86,
+        "wape": 0.3006,
+        "skill_vs_naive": 0.1745,
+        "n": 342
+      },
+      "6": {
+        "mae_deaths": 213.9,
+        "mae_naive_deaths": 236.96,
+        "wape": 0.3663,
+        "skill_vs_naive": 0.0973,
+        "n": 336
+      },
+      "7": {
+        "mae_deaths": 235.92,
+        "mae_naive_deaths": 255.48,
+        "wape": 0.4073,
+        "skill_vs_naive": 0.0765,
+        "n": 330
+      },
+      "8": {
+        "mae_deaths": 279.59,
+        "mae_naive_deaths": 272.29,
+        "wape": 0.487,
+        "skill_vs_naive": -0.0268,
+        "n": 324
+      }
+    },
+    "by_country": {
+      "FRA": {
+        "mae_deaths": 100.35,
+        "mae_naive_deaths": 142.08,
+        "wape": 0.3345,
+        "skill_vs_naive": 0.2937,
+        "n": 408
+      },
+      "IND": {
+        "mae_deaths": 118.5,
+        "mae_naive_deaths": 116.4,
+        "wape": 1.2774,
+        "skill_vs_naive": -0.0181,
+        "n": 588
+      },
+      "ITA": {
+        "mae_deaths": 96.36,
+        "mae_naive_deaths": 129.68,
+        "wape": 0.3119,
+        "skill_vs_naive": 0.2569,
+        "n": 588
+      },
+      "RUS": {
+        "mae_deaths": 61.13,
+        "mae_naive_deaths": 79.01,
+        "wape": 0.2407,
+        "skill_vs_naive": 0.2262,
+        "n": 588
+      },
+      "USA": {
+        "mae_deaths": 488.57,
+        "mae_naive_deaths": 480.93,
+        "wape": 0.2545,
+        "skill_vs_naive": -0.0159,
+        "n": 588
+      }
+    }
+  },
+  "interval": "80% empirical interval from backtest log residuals per horizon",
+  "permutation_importance_h1": {
+    "deaths_lag_0": 5.27809,
+    "deaths_lag_1": 1.45021,
+    "cases_lag_0": 0.11264,
+    "cases_growth_1": 0.05688,
+    "deaths_mean_8": 0.05414,
+    "deaths_mean_4": 0.04258,
+    "median_age": 0.03625,
+    "deaths_lag_3": 0.03527,
+    "cases_lag_2": 0.01934,
+    "vaccination_rate": 0.01891,
+    "booster_rate": 0.01129,
+    "cases_lag_1": 0.00908,
+    "deaths_lag_2": 0.0051,
+    "hospital_beds_per_thousand": 0.00033,
+    "deaths_lag_7": -0.0001
+  }
+}

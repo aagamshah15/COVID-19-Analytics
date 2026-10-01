@@ -16,10 +16,10 @@ Provide decision-oriented visibility into how mortality burden evolved globally 
 - ML-based weekly burden forecasting
 
 ## 4) Key Outputs
-- `data/processed/covid_weekly_features.csv`
-- `warehouse/covid_dw.duckdb`
-- `reports/dq_report.csv`
-- `data/processed/forecast_<country>.csv`
+- `data/processed/tableau_exec_extract.csv` (weekly actuals + forecasts, dashboard source)
+- `warehouse/covid_dw.duckdb` (star schema) + `sql/analytical_queries.sql` (22 queries)
+- `reports/dq_report.csv` (quality gate results)
+- `reports/forecast_metrics.json` (backtest vs naive baseline)
 
 ## 5) Impact Narrative
 - Identified high-burden country segments
@@ -27,7 +27,7 @@ Provide decision-oriented visibility into how mortality burden evolved globally 
 - Provided short-term predictive signal for healthcare strain
 
 ## 6) Tech Stack
-Python, Pandas, NumPy, DuckDB SQL, Tableau Public, GitHub Actions, ML forecasting
+Python, pandas, DuckDB / PostgreSQL, SQL, scikit-learn (gradient boosting), pytest, GitHub Actions, Tableau Public
 
 ## 7) Portfolio Links
 - GitHub: <add repo link>
