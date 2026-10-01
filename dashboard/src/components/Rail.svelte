@@ -28,14 +28,14 @@
     </svg>
   </a>
   {#each PAGES as p}
-    <a href={app.link(p.id, p.id === "country" ? app.iso : null)} aria-current={app.page === p.id ? "page" : undefined}>
+    <a href={app.link(p.id, p.id === "country" ? app.iso : null)} aria-current={app.page === p.id ? "page" : undefined} title={p.label}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[p.id]} /></svg>
       <span class="long">{p.label}</span><span class="short">{p.short}</span>
     </a>
   {/each}
   <button class="theme" onclick={next} aria-label={`Theme: ${current.label}. Switch theme`} title="Switch theme">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d={current.icon} /></svg>
-    <span>{current.label}</span>
+    <span class="theme-label">{current.label}</span>
   </button>
 </nav>
 
@@ -138,6 +138,30 @@
     }
     .theme {
       margin-top: 0;
+    }
+  }
+  /* Very narrow screens: shrink labels, then fall back to icons (names stay for screen readers). */
+  @media (max-width: 380px) {
+    a:not(.mark),
+    .theme {
+      font-size: 9.5px;
+    }
+    .theme-label {
+      display: none;
+    }
+  }
+  @media (max-width: 340px) {
+    .short {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    a:not(.mark),
+    .theme {
+      padding: 10px 0;
     }
   }
 </style>
