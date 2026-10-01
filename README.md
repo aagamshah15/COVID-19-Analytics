@@ -2,6 +2,8 @@
 
 A global healthcare burden pipeline: an end-to-end analytics project that turns the two reference COVID-19 datasets, **Our World in Data** and the **WHO**, into a tested, quality-gated star-schema warehouse, a 22-query SQL analysis pack, a weekly deaths forecast with an honest backtest, and a seven-page interactive web dashboard.
 
+**Live dashboard:** [aagamshah15.github.io/COVID-19-Analytics](https://aagamshah15.github.io/COVID-19-Analytics/), rebuilt from the live sources every Monday.
+
 **Coverage:** 239 countries and territories, 1 Jan 2020 to 31 Dec 2023, daily and weekly grain.
 **Runtime:** about 30 seconds end to end on a laptop, plus about 20 seconds to download the sources.
 
@@ -147,7 +149,7 @@ covid-pipeline export                  # Tableau / Power BI extract
 
 ## Dashboard
 
-A seven-page interactive dashboard in [`dashboard/`](dashboard), with light and dark themes. The design brief, reference review and visual system are in [`docs/dashboard/DESIGN.md`](docs/dashboard/DESIGN.md).
+A seven-page interactive dashboard in [`dashboard/`](dashboard), with light and dark themes, live at [aagamshah15.github.io/COVID-19-Analytics](https://aagamshah15.github.io/COVID-19-Analytics/). The design brief, reference review and visual system are in [`docs/dashboard/DESIGN.md`](docs/dashboard/DESIGN.md).
 
 | Page | What it answers |
 |---|---|
