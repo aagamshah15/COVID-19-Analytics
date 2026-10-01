@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COVID-19 Analytics: overview mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --plane: #f5f7f6; --ink: #172422; --ink-2: #4e5c59; --muted: #85918e; --hair: #dde3e1;
+  --deaths: #b3303e; --cases: #5a55c4; --vax: #008675; --hosp: #b87a00;
+  --rail: #eaefed; --focus: #5a55c4;
+  --font: "Public Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --plane: #141a19; --ink: #eef3f1; --ink-2: #b5c1be; --muted: #7d8a87; --hair: #26302e;
+    --deaths: #c94657; --cases: #8a84ea; --vax: #20aa99; --hosp: #bb8210; --rail: #1b2321;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --plane: #141a19; --ink: #eef3f1; --ink-2: #b5c1be; --muted: #7d8a87; --hair: #26302e;
+  --deaths: #c94657; --cases: #8a84ea; --vax: #20aa99; --hosp: #bb8210; --rail: #1b2321;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--plane); color: var(--ink); font: 400 16px/1.55 var(--font); }
+.app { display: grid; grid-template-columns: 84px minmax(0, 1fr); min-height: 100vh; }
+nav.rail { background: var(--rail); padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; position: sticky; top: 0; height: 100vh; }
+.mark { width: 40px; height: 28px; margin-bottom: 22px; }
+.rail a { width: 72px; padding: 9px 0 7px; border-radius: 10px; color: var(--ink-2); text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; line-height: 1.2; text-align: center; }
+.rail a svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.rail a span.short { display: none; }
+.rail a[aria-current="page"] { color: var(--ink); background: var(--plane); font-weight: 500; }
+.rail a:hover { color: var(--ink); }
+main { padding: 28px clamp(16px, 4vw, 56px) 64px; max-width: 1360px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; font-size: 14px; color: var(--ink-2); }
+.seg { display: inline-flex; border: 1px solid var(--hair); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--hair); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--plane); }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+select, input[type=search] { font: inherit; color: var(--ink); background: var(--plane); border: 1px solid var(--hair); border-radius: 8px; padding: 6px 10px; }
+input[type=search] { width: 220px; }
+.hero { margin-top: 34px; }
+h1 { font-size: clamp(30px, 3.4vw, 46px); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0; max-width: 20ch; }
+.lede { color: var(--ink-2); font-size: 18px; max-width: 64ch; margin: 14px 0 0; }
+.spine { margin-top: 26px; position: relative; }
+.spine svg { display: block; width: 100%; height: auto; overflow: visible; }
+.axis text, .era text, .label { font: 400 12.5px var(--font); fill: var(--muted); }
+.era text { fill: var(--ink-2); }
+.tip { position: absolute; pointer-events: none; background: var(--plane); border: 1px solid var(--hair); border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.35; min-width: 168px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); opacity: 0; transition: opacity .12s; }
+.tip strong { font-size: 18px; font-weight: 700; display: block; }
+.tip .k { display: inline-block; width: 12px; height: 2px; vertical-align: middle; margin-right: 6px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--hair); }
+.stat .v { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -0.01em; }
+.stat .v small { font-size: 20px; font-weight: 500; color: var(--ink-2); margin-left: 4px; }
+.stat .l { margin-top: 8px; color: var(--ink-2); font-size: 14.5px; max-width: 28ch; }
+.stat .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 7px; vertical-align: 0; }
+section.findings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-top: 44px; }
+.finding h2 { font-size: 19px; line-height: 1.3; margin: 0 0 6px; font-weight: 700; }
+.finding p { margin: 0; color: var(--ink-2); font-size: 15px; max-width: 46ch; }
+.finding a { color: var(--ink); font-size: 14px; font-weight: 500; text-underline-offset: 3px; display: inline-block; margin-top: 8px; }
+.views { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; margin-top: 52px; padding-top: 30px; border-top: 1px solid var(--hair); }
+.view h3 { font-size: 21px; line-height: 1.25; margin: 0; font-weight: 700; }
+.view .sub { color: var(--ink-2); font-size: 14.5px; margin: 4px 0 14px; }
+.view footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 8px; }
+.view footer .seg button { padding: 3px 10px; font-size: 12.5px; }
+code { font-size: 12px; }
+.multiples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 22px; }
+.multiples h4 { margin: 0; font-size: 14px; font-weight: 500; }
+.note { margin-top: 56px; color: var(--muted); font-size: 13px; }
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  nav.rail { position: fixed; bottom: 0; top: auto; left: 0; right: 0; height: 64px; flex-direction: row; justify-content: space-around; padding: 4px; z-index: 5; }
+  .mark, .rail a span.long { display: none; }
+  .rail a span.short { display: inline; }
+  .rail a { width: auto; flex: 1; min-width: 0; padding: 6px 0; font-size: 10.5px; }
+  .rail a svg { width: 20px; height: 20px; }
+  .controls { gap: 10px 14px; }
+  .controls > .seg:first-child { max-width: 100%; overflow-x: auto; }
+  .seg button { white-space: nowrap; }
+  main { padding-bottom: 96px; }
+  .stats, section.findings, .views { grid-template-columns: 1fr 1fr; }
+  .views { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) { .stats, section.findings { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="Pages">
+    <svg class="mark" viewBox="0 0 40 28" aria-hidden="true"><g fill="var(--deaths)"><rect x="1" y="20" width="3" height="8" rx="1"/><rect x="6" y="12" width="3" height="16" rx="1"/><rect x="11" y="3" width="3" height="25" rx="1"/><rect x="16" y="9" width="3" height="19" rx="1"/><rect x="21" y="15" width="3" height="13" rx="1"/><rect x="26" y="19" width="3" height="9" rx="1"/><rect x="31" y="23" width="3" height="5" rx="1"/><rect x="36" y="25" width="3" height="3" rx="1"/></g></svg>
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16v-5M10 16V6M14 16v-8M18 16v-3"/></svg>Overview</a>
+    <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span class="long">Where it hit</span><span class="short">Map</span></a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Country</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="m17 3 4 4M19 5l-9.5 9.5M8 12l4 4M6.5 13.5 4 16l4 4 2.5-2.5M3 21l2-2"/></svg>Vaccines</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13M9 21v-6h6v6M12 7v4M10 9h4"/></svg>Hospitals</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 4-6 5 4"/><path d="M16 9h5v5" /></svg>Outlook</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Data</span></a>
+  </nav>
+
+  <main>
+    <div class="controls" role="group" aria-label="Filters">
+      <div class="seg" role="group" aria-label="Period" id="period">
+        <button aria-pressed="true" data-from="2020-01-01" data-to="2023-12-31">Whole pandemic</button>
+        <button aria-pressed="false" data-from="2020-01-01" data-to="2020-12-31">2020</button>
+        <button aria-pressed="false" data-from="2021-01-01" data-to="2021-12-31">2021</button>
+        <button aria-pressed="false" data-from="2022-01-01" data-to="2022-12-31">2022</button>
+        <button aria-pressed="false" data-from="2023-01-01" data-to="2023-12-31">2023</button>
+      </div>
+      <label>Region <select><option>All countries</option><option>Africa</option><option>Asia</option><option>Europe</option><option>North America</option><option>Oceania</option><option>South America</option></select></label>
+      <div class="seg" role="group" aria-label="Measure"><button aria-pressed="true">Per million</button><button aria-pressed="false">Absolute</button></div>
+      <input type="search" placeholder="Find a country" aria-label="Find a country">
+    </div>
+
+    <div class="hero">
+      <h1>Four years of COVID-19, week by week</h1>
+      <p class="lede" id="lede"></p>
+      <div class="spine" id="spine"><div class="tip" id="tip" role="status"></div></div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <section class="findings" aria-label="Key findings">
+      <article class="finding">
+        <h2>The deadliest week came before most people could be vaccinated</h2>
+        <p>103,719 deaths were reported in the week ending 24 January 2021, when under 1% of the world was fully vaccinated.</p>
+        <a href="#">See the 2021 wave on the map</a>
+      </article>
+      <article class="finding">
+        <h2>Severity fell about twentyfold</h2>
+        <p>Deaths per recorded case dropped from 5.5% in early 2020 to under 0.3% by late 2022, as immunity, treatment and milder variants arrived.</p>
+        <a href="#">Explore vaccines and severity</a>
+      </article>
+      <article class="finding">
+        <h2>The data thinned out long before the virus did</h2>
+        <p>27 countries had stopped reporting deaths by the end of 2023. Those weeks are shown as gaps, never as zero.</p>
+        <a href="#">See reporting coverage</a>
+      </article>
+    </section>
+
+    <div class="views">
+      <article class="view">
+        <h3>Deaths per recorded case fell through 2022</h3>
+        <p class="sub">Case fatality rate by quarter, all countries. Later rises reflect testing collapse, not deadlier disease.</p>
+        <div id="cfr"></div>
+        <footer><span>Source: OWID and WHO. Query <code>q12_cfr_by_quarter</code></span><span class="seg"><button aria-pressed="true">Chart</button><button aria-pressed="false">Table</button></span></footer>
+      </article>
+      <article class="view">
+        <h3>The Americas and Europe bore the heaviest reported toll</h3>
+        <p class="sub">Reported deaths per million people, by continent and year. Same scale in every panel.</p>
+        <div class="multiples" id="multiples"></div>
+        <footer><span>Source: OWID and WHO. Query <code>q08_continent_burden</code></span><span class="seg"><button aria-pressed="true">Chart</button><button aria-pressed="false">Table</button></span></footer>
+      </article>
+    </div>
+
+    <p class="note">Design mockup: real data from the pipeline, simplified interactions. Variant eras are approximate periods of global dominance.</p>
+  </main>
+</div>
+
+<script src="overview-data.js"></script>
+<script>
+const D = window.MOCK, NS = "http://www.w3.org/2000/svg";
+const fmt = new Intl.NumberFormat("en-US");
+const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+const weeks = D.spine.map(([w, d, v]) => ({ date: new Date(w + "T00:00:00Z"), w, deaths: d, vax: v }));
+const ERAS = [["Ancestral", "2020-01-12", "2020-12-27"], ["Alpha", "2021-01-03", "2021-06-06"], ["Delta", "2021-06-13", "2021-12-26"], ["Omicron", "2022-01-02", "2023-12-31"]];
+const short = (d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+let range = ["2020-01-01", "2023-12-31"];
+
+function drawSpine() {
+  const host = document.getElementById("spine");
+  host.querySelector("svg")?.remove();
+  const W = Math.max(host.clientWidth, 320), narrow = W < 640, top = narrow ? 46 : 30, barH = narrow ? 170 : 190, axisY = top + barH;
+  const yearY = axisY + 18, ribbonY = axisY + 32, ribbonH = 10, ribbonLabelY = ribbonY + ribbonH + 16, eraY = ribbonLabelY + 16, H = eraY + 30;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Global weekly reported COVID-19 deaths, January 2020 to December 2023, with vaccination coverage and dominant variant eras" });
+  host.prepend(svg);
+  const n = weeks.length, step = W / n, bw = Math.max(step - 2, 1), max = 110000;
+  const y = (v) => axisY - (v / max) * barH;
+  for (const t of [25000, 50000, 75000, 100000]) {
+    el("line", { x1: 0, x2: W, y1: y(t), y2: y(t), stroke: "var(--hair)" }, svg);
+    const tx = el("text", { x: 0, y: y(t) - 5, class: "label" }, svg); tx.textContent = `${t / 1000}k`;
+  }
+  const inRange = (w) => w.w >= range[0] && w.w <= range[1];
+  weeks.forEach((w, i) => {
+    el("rect", { x: i * step + 1, y: y(w.deaths), width: bw, height: Math.max(axisY - y(w.deaths), 0.5), rx: Math.min(1.5, bw / 2), fill: inRange(w) ? "var(--deaths)" : "color-mix(in oklab, var(--deaths) 22%, var(--plane))" }, svg);
+    el("rect", { x: i * step, y: ribbonY, width: step + 0.5, height: ribbonH, style: `fill: color-mix(in oklab, var(--vax) ${Math.round(w.vax * 100)}%, var(--hair))` }, svg);
+  });
+  el("line", { x1: 0, x2: W, y1: axisY + 0.5, y2: axisY + 0.5, stroke: "var(--muted)" }, svg);
+  const idx = (iso) => weeks.findIndex((w) => w.w >= iso);
+  for (const yr of [2020, 2021, 2022, 2023]) {
+    const x = idx(`${yr}-01-01`) * step;
+    el("line", { x1: x + 0.5, x2: x + 0.5, y1: axisY, y2: axisY + 5, stroke: "var(--muted)" }, svg);
+    const t = el("text", { x: x + 4, y: yearY, class: "label" }, svg); t.textContent = yr;
+  }
+  const rl = el("text", { x: 0, y: ribbonLabelY, class: "label" }, svg);
+  rl.textContent = narrow ? "Fully vaccinated share" : "Share of the world fully vaccinated (deeper teal = higher)";
+  const last = weeks[n - 1];
+  const rv = el("text", { x: W, y: ribbonLabelY, "text-anchor": "end", class: "label", style: "fill: var(--ink)" }, svg);
+  rv.textContent = narrow ? `${Math.round(last.vax * 100)}%` : `${Math.round(last.vax * 100)}% by Dec 2023`;
+  ERAS.forEach(([name, a, b]) => {
+    const x0 = idx(a) * step, x1 = (b >= weeks[n - 1].w ? n : idx(b) + 1) * step;
+    const g = el("g", { class: "era" }, svg);
+    el("line", { x1: x0 + 1, x2: x1 - 3, y1: eraY + 4, y2: eraY + 4, stroke: "var(--ink-2)", "stroke-width": 1.2 }, g);
+    el("line", { x1: x0 + 1, x2: x0 + 1, y1: eraY, y2: eraY + 8, stroke: "var(--ink-2)", "stroke-width": 1.2 }, g);
+    const t = el("text", { x: x0 + 4, y: eraY + 22 }, g); t.textContent = name;
+  });
+  const callout = (i, text, anchor = "start", row = 0) => {
+    const w = weeks[i], cx = (i + 0.5) * step, ty = top - 14 - row * 16;
+    el("line", { x1: cx, x2: cx, y1: y(w.deaths) - 3, y2: ty + 2, stroke: "var(--ink-2)", "stroke-width": 1 }, svg);
+    const t = el("text", { x: anchor === "start" ? cx + 5 : cx - 5, y: ty, "text-anchor": anchor, class: "label", style: "fill: var(--ink)" }, svg);
+    t.textContent = text;
+  };
+  const peak = weeks.reduce((a, b) => (b.deaths > a.deaths ? b : a)), pi = weeks.indexOf(peak);
+  callout(pi, narrow ? `Peak, ${short(peak.date)}` : `Deadliest week, ${short(peak.date)}: ${fmt.format(peak.deaths)}`, "start", narrow ? 1 : 0);
+  const late = weeks.slice(idx("2023-01-01")), spike = late.reduce((a, b) => (b.deaths > a.deaths ? b : a));
+  callout(weeks.indexOf(spike), narrow ? "China backlog" : "China releases backlog of deaths", "end");
+
+  const cross = el("line", { y1: top, y2: axisY, stroke: "var(--ink)", "stroke-width": 1, opacity: 0 }, svg);
+  const tip = document.getElementById("tip");
+  const hit = el("rect", { x: 0, y: top, width: W, height: ribbonY + ribbonH - top, fill: "transparent", tabindex: 0, "aria-label": "Weekly deaths: use left and right arrow keys to read each week" }, svg);
+  const show = (i) => {
+    i = Math.max(0, Math.min(n - 1, i));
+    const w = weeks[i], cx = (i + 0.5) * step;
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("opacity", 0.5);
+    tip.replaceChildren();
+    const s = document.createElement("strong"); s.textContent = fmt.format(w.deaths); tip.append(s);
+    const r1 = document.createElement("div"); r1.innerHTML = '<span class="k" style="background:var(--deaths)"></span>'; r1.append("deaths, week ending " + short(w.date)); tip.append(r1);
+    const r2 = document.createElement("div"); r2.innerHTML = '<span class="k" style="background:var(--vax)"></span>'; r2.append(`${Math.round(w.vax * 100)}% fully vaccinated`); tip.append(r2);
+    const px = (cx / W) * host.clientWidth;
+    tip.style.left = (px > host.clientWidth - 220 ? px - 200 : px + 12) + "px"; tip.style.top = top + 4 + "px"; tip.style.opacity = 1;
+    hit.dataset.i = i;
+  };
+  hit.addEventListener("pointermove", (e) => { const b = svg.getBoundingClientRect(); show(Math.floor(((e.clientX - b.left) / b.width) * n)); });
+  hit.addEventListener("pointerleave", () => { tip.style.opacity = 0; cross.setAttribute("opacity", 0); });
+  hit.addEventListener("blur", () => { tip.style.opacity = 0; cross.setAttribute("opacity", 0); });
+  hit.addEventListener("keydown", (e) => { const i = +(hit.dataset.i ?? n - 1); if (e.key === "ArrowLeft") { e.preventDefault(); show(i - 1); } if (e.key === "ArrowRight") { e.preventDefault(); show(i + 1); } });
+  hit.addEventListener("focus", () => show(+(hit.dataset.i ?? pi)));
+}
+
+function drawStats() {
+  const sel = weeks.filter((w) => w.w >= range[0] && w.w <= range[1]);
+  const total = sel.reduce((a, w) => a + w.deaths, 0);
+  const peak = sel.reduce((a, b) => (b.deaths > a.deaths ? b : a));
+  const vaxEnd = sel[sel.length - 1].vax;
+  const whole = range[0] === "2020-01-01" && range[1] === "2023-12-31";
+  document.getElementById("lede").textContent = whole
+    ? `${(D.kpi.deaths / 1e6).toFixed(2)} million deaths were reported across ${D.kpi.countries} countries between January 2020 and December 2023. The true toll was higher: many deaths were never tested or registered.`
+    : `${fmt.format(total)} deaths were reported between ${short(sel[0].date)} and ${short(sel[sel.length - 1].date)}.`;
+  const stats = [
+    ["var(--deaths)", total >= 1e6 ? (total / 1e6).toFixed(2) : fmt.format(total), total >= 1e6 ? "million" : "", "deaths reported in the selected period"],
+    ["var(--deaths)", fmt.format(peak.deaths), "", `in the deadliest week, ending ${short(peak.date)}`],
+    ["var(--cases)", whole ? (D.kpi.cases / 1e6).toFixed(0) : "–", whole ? "million" : "", "cases recorded (testing varied widely)"],
+    ["var(--vax)", Math.round(vaxEnd * 100) + "%", "", "of the world fully vaccinated by the end of the period"],
+  ];
+  const host = document.getElementById("stats"); host.replaceChildren();
+  for (const [c, v, unit, label] of stats) {
+    const d = document.createElement("div"); d.className = "stat";
+    const vv = document.createElement("div"); vv.className = "v"; vv.textContent = v;
+    if (unit) { const s = document.createElement("small"); s.textContent = unit; vv.append(s); }
+    const l = document.createElement("div"); l.className = "l"; l.innerHTML = `<span class="swatch" style="background:${c}"></span>`; l.append(label);
+    d.append(vv, l); host.append(d);
+  }
+}
+
+function drawCfr() {
+  const host = document.getElementById("cfr"); host.replaceChildren();
+  const W = Math.max(host.clientWidth, 280), H = 230, top = 18, bottom = 26, left = 30, n = D.cfr.length, step = (W - left) / n, max = 0.06;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": "Case fatality rate by quarter, 2020 to 2023" }, host);
+  const y = (v) => top + (H - top - bottom) * (1 - v / max);
+  for (const t of [0, 0.02, 0.04, 0.06]) { if (t) el("line", { x1: left, x2: W, y1: y(t), y2: y(t), stroke: "var(--hair)" }, svg); const tx = el("text", { x: left - 6, y: y(t) + 4, "text-anchor": "end", class: "label" }, svg); tx.textContent = `${t * 100}%`; }
+  D.cfr.forEach(([q, v], i) => {
+    const r = el("rect", { x: left + i * step + 2, y: y(v), width: step - 4, height: y(0) - y(v), rx: 2, fill: "var(--deaths)" }, svg);
+    const t = el("title", {}, r); t.textContent = `${q}: ${(v * 100).toFixed(2)}%`;
+    if (q.endsWith("Q1")) { const tx = el("text", { x: left + i * step + 2, y: H - 6, class: "label" }, svg); tx.textContent = q.slice(0, 4); }
+    if (i === 0 || i === 11) { const tx = el("text", { x: left + i * step + step / 2, y: y(v) - 6, "text-anchor": "middle", class: "label", style: "fill: var(--ink)" }, svg); tx.textContent = `${(v * 100).toFixed(1)}%`; }
+  });
+  el("line", { x1: left, x2: W, y1: y(0) + 0.5, y2: y(0) + 0.5, stroke: "var(--muted)" }, svg);
+}
+
+function drawMultiples() {
+  const host = document.getElementById("multiples"); host.replaceChildren();
+  const order = ["South America", "Europe", "North America", "Asia", "Oceania", "Africa"];
+  const max = 1400;
+  for (const c of order) {
+    const rows = D.continentYear.filter((r) => r[0] === c);
+    const box = document.createElement("div"); const h = document.createElement("h4"); h.textContent = c; box.append(h);
+    const W = 200, H = 96, step = W / 4;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": `${c}: deaths per million by year` }, box);
+    const y = (v) => 14 + (H - 34) * (1 - v / max);
+    rows.forEach(([, yr, v], i) => {
+      const r = el("rect", { x: i * step + 3, y: y(v), width: step - 6, height: Math.max(y(0) - y(v), 0.5), rx: 2, fill: "var(--deaths)" }, svg);
+      const t = el("title", {}, r); t.textContent = `${c} ${yr}: ${fmt.format(Math.round(v))} per million`;
+      const lab = el("text", { x: i * step + step / 2, y: H - 4, "text-anchor": "middle", class: "label" }, svg); lab.textContent = "’" + String(yr).slice(2);
+      if (v === Math.max(...rows.map((r) => r[2]))) { const tv = el("text", { x: i * step + step / 2, y: y(v) - 4, "text-anchor": "middle", class: "label", style: "fill: var(--ink)" }, svg); tv.textContent = fmt.format(Math.round(v)); }
+    });
+    el("line", { x1: 0, x2: W, y1: y(0) + 0.5, y2: y(0) + 0.5, stroke: "var(--muted)" }, svg);
+    host.append(box);
+  }
+}
+
+document.querySelectorAll("#period button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("#period button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  range = [b.dataset.from, b.dataset.to]; drawSpine(); drawStats();
+}));
+const all = () => { drawSpine(); drawStats(); drawCfr(); drawMultiples(); };
+all(); addEventListener("resize", all);
+</script>
+</body>
+</html>
