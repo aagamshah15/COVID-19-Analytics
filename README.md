@@ -1,6 +1,6 @@
 # COVID-19 Analytics
 
-A global healthcare burden pipeline: an end-to-end analytics project that turns the two reference COVID-19 datasets, **Our World in Data** and the **WHO**, into a tested, quality-gated star-schema warehouse, a 22-query SQL analysis pack, a weekly deaths forecast with an honest backtest, and a dashboard-ready extract.
+A global healthcare burden pipeline: an end-to-end analytics project that turns the two reference COVID-19 datasets, **Our World in Data** and the **WHO**, into a tested, quality-gated star-schema warehouse, a 22-query SQL analysis pack, a weekly deaths forecast with an honest backtest, and a seven-page interactive web dashboard.
 
 **Coverage:** 239 countries and territories, 1 Jan 2020 to 31 Dec 2023, daily and weekly grain.
 **Runtime:** about 30 seconds end to end on a laptop, plus about 20 seconds to download the sources.
@@ -8,7 +8,8 @@ A global healthcare burden pipeline: an end-to-end analytics project that turns 
 ```bash
 pip install -e ".[dev]"
 covid-pipeline run          # download -> curate -> DQ gate -> warehouse -> forecast -> export
-pytest                      # 49 tests, ~5s
+covid-pipeline web-export   # data files for the dashboard
+cd dashboard && npm install && npm run dev
 ```
 
 ---
@@ -40,9 +41,11 @@ flowchart LR
     T --> F[forecast<br/>backtest + 8-wk outlook]
     F --> W
     W --> S[SQL pack<br/>22 queries]
-    T --> E[dashboard extract]
-    F --> E
-    E --> D[Tableau / Power BI]
+    S --> J[web-export]
+    F --> J
+    T --> J
+    J --> D[Web dashboard<br/>GitHub Pages]
+    T --> E[Tableau extract]
 ```
 
 | Stage | Module | Output |
@@ -52,6 +55,8 @@ flowchart LR
 | Quality gate | [`quality.py`](src/covid_pipeline/quality.py) | `reports/dq_report.csv`; the run stops on any error-level failure |
 | Warehouse | [`warehouse.py`](src/covid_pipeline/warehouse.py), [`schema.sql`](warehouse/schema.sql) | `warehouse/covid_dw.duckdb` (or PostgreSQL) |
 | Forecast | [`forecast.py`](src/covid_pipeline/forecast.py) | `data/processed/forecast_weekly_deaths.csv`, `reports/forecast_metrics.json` |
+| Web export | [`web.py`](src/covid_pipeline/web.py) | `dashboard/public/data/*.json`: weekly series per country, SQL-pack results, forecasts, DQ report |
+| Dashboard | [`dashboard/`](dashboard) | Static Svelte site, deployed to GitHub Pages |
 | Export | [`export.py`](src/covid_pipeline/export.py) | `data/processed/tableau_exec_extract.csv` (actuals and forecasts, one long table) |
 
 ## Data sources and the problems they hide
@@ -134,16 +139,39 @@ covid-pipeline transform               # raw -> curated parquet
 covid-pipeline dq                      # quality gate on curated data
 covid-pipeline warehouse [--target postgres --postgres-url ...]
 covid-pipeline forecast [--horizon-weeks 8 --top-n 5]
-covid-pipeline export                  # dashboard extract
+covid-pipeline web-export              # web dashboard data files
+covid-pipeline export                  # Tableau / Power BI extract
 ```
 
 `--offline` reuses the cached raw files. Without it, a failed download stops the run instead of silently falling back to old data. PostgreSQL support needs `pip install -e ".[postgres]"`; the connection URL can also come from `$POSTGRES_URL`.
 
 ## Dashboard
 
-`data/processed/tableau_exec_extract.csv` holds weekly actuals and forecasts for every country in one long table. Rows are marked `record_type = actual | forecast`; forecast rows carry `predicted_deaths` and 80% interval bounds, and `is_focus_country` flags the focus set. It works directly as a Tableau or Power BI data source.
+A seven-page interactive dashboard in [`dashboard/`](dashboard), with light and dark themes. The design brief, reference review and visual system are in [`docs/dashboard/DESIGN.md`](docs/dashboard/DESIGN.md).
 
-> **Note:** `dashboards/tableau/Dashboard1.twbx` was built on the previous extract, which stopped in Sept 2020 and had no vaccination data. It needs to be re-pointed at the new extract. Several column names changed: `cases_per_million` is now `cumulative_cases_per_million`, `aged_65_older` is replaced by `median_age`, and the weekly date column is `week_end`. The storyboard is being redesigned.
+| Page | What it answers |
+|---|---|
+| Overview | What happened, in one minute: the timeline spine (drag it to choose a period), headline numbers, three findings |
+| Where it hit | Which places carried the heaviest burden: world map, rankings, continent waves |
+| Country | Any country against its continent and the world: waves, vaccination, hospital strain, peers, reporting gaps |
+| Vaccines | How severity fell as coverage rose, and why raw country comparisons mislead |
+| Hospitals | Peak share of hospital beds taken by COVID-19 patients, week by week |
+| Outlook | The 8-week forecast with its 80% range and its skill against a naive baseline |
+| Data | The quality gate, source fingerprints, and where reporting stopped |
+
+Design rules: each metric keeps one hue everywhere (deaths oxblood, cases indigo, vaccination teal, hospital strain amber), validated for color-vision deficiency in both themes; reporting gaps are hatched, never drawn as zero; every chart has a table view and names the SQL query behind it; all filters live in the URL, so any view is shareable.
+
+Headline numbers come from the SQL-pack results exported by `web-export`. Interactive re-aggregation by region and period happens in the browser, and [`aggregate.test.ts`](dashboard/src/lib/data/aggregate.test.ts) checks it reproduces the SQL pack exactly.
+
+```bash
+cd dashboard
+npm install
+npm run dev          # http://localhost:5173
+npm test             # parity tests against the SQL pack (needs `covid-pipeline web-export` first)
+npm run build        # static site in dashboard/dist
+```
+
+**Tableau / Power BI:** `data/processed/tableau_exec_extract.csv` holds weekly actuals and forecasts in one long table (`record_type = actual | forecast`). The older `dashboards/tableau/Dashboard1.twbx` was built on the previous extract and needs re-pointing: `cases_per_million` is now `cumulative_cases_per_million`, `aged_65_older` is replaced by `median_age`, and the weekly date column is `week_end`.
 
 ## Development
 
@@ -153,20 +181,22 @@ pip install -e ".[dev,notebooks,postgres]"
 ruff check src tests && pytest
 ```
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint and tests on every push. [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) rebuilds everything from the live sources weekly or on demand and uploads the reports, the extract and the warehouse as build artifacts.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) lints and tests the pipeline and type-checks and builds the dashboard on every push. [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) rebuilds everything from the live sources weekly, on demand and on pushes to `main`, runs the dashboard's parity tests, uploads the reports and warehouse as artifacts, and publishes the dashboard to GitHub Pages.
 
 ```
-src/covid_pipeline/   ingest, transform, quality, warehouse, forecast, export, cli, config
+src/covid_pipeline/   ingest, transform, quality, warehouse, forecast, export, web, cli, config
+dashboard/            Svelte + TypeScript web dashboard (pages, charts, state, tests)
+docs/dashboard/       design brief (the original static mockup is in dashboard/mockups/)
 sql/                  analytical query pack
 warehouse/            schema.sql (+ generated covid_dw.duckdb)
 notebooks/            01 burden story, 02 forecast review (executed, read from the warehouse)
 reports/              dq_report.csv, forecast_metrics.json (versioned)
-tests/                49 tests on synthetic fixtures that reproduce the real data's quirks
+tests/                53 tests on synthetic fixtures that reproduce the real data's quirks
 ```
 
 ## Limitations
 
 - **Reported deaths are not total deaths.** The WHO estimates 14.9M excess deaths in 2020–2021 against 5.4M reported, roughly 2.7× higher, with the biggest gaps where death registration is weak. Treat low figures (Africa, South Asia) as a floor.
 - **Cases became unreliable from 2022** as testing collapsed, which distorts CFR and per-case metrics in 2023.
-- **Hospital and ICU occupancy** is published by only 36 countries, mostly in Europe and the Americas.
+- **Hospital figures are sparse.** 42 countries publish COVID-19 hospital or ICU patient counts (36 report hospital patients), mostly in Europe and the Americas.
 - **The vaccination comparisons are associations, not causal effects.** More-vaccinated countries are also older, richer and test more.

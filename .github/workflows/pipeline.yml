@@ -1,18 +1,25 @@
 name: pipeline
 
-# Rebuilds every layer from the live OWID + WHO sources. The analysis window (2020-2023) is
-# historical, so a weekly run is enough to pick up upstream revisions.
+# Rebuilds every layer from the live OWID + WHO sources, then builds the dashboard and
+# publishes it to GitHub Pages. Requires Pages to be enabled with "GitHub Actions" as the source.
 on:
   workflow_dispatch:
-    inputs:
-      end_date:
-        description: "Analysis window end date"
-        default: "2023-12-31"
+  push:
+    branches: [main]
   schedule:
     - cron: "30 6 * * 1" # Mondays 06:30 UTC
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  run:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -21,12 +28,24 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install
+      - name: Install pipeline
         run: pip install -e .
       - name: Run pipeline (fails if the data quality gate fails)
-        run: covid-pipeline run --end-date "${{ inputs.end_date || '2023-12-31' }}"
-      - name: Upload outputs
-        if: always()
+        run: covid-pipeline run
+      - name: Export dashboard data
+        run: covid-pipeline web-export
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Build dashboard
+        working-directory: dashboard
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Upload pipeline outputs
         uses: actions/upload-artifact@v4
         with:
           name: covid-pipeline-outputs
@@ -36,3 +55,16 @@ jobs:
             data/processed/tableau_exec_extract.csv
             data/processed/forecast_weekly_deaths.csv
             warehouse/covid_dw.duckdb
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

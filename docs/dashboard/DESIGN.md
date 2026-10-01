@@ -1,6 +1,6 @@
 # COVID-19 Analytics dashboard: design and build plan
 
-Status: **draft for review**. Nothing is built yet; this document is the brief we build against.
+Status: **built** (all seven pages, light and dark). This document is the brief the dashboard was built against; deviations are noted inline.
 
 ## 1. Brief
 
@@ -115,9 +115,9 @@ Headline numbers and findings come from the SQL-pack results rather than being r
 |---|---|---|
 | Build | **Vite + TypeScript** | Fast, static output, nothing to run in production. |
 | UI | **Svelte 5** | Compiled, a tiny runtime and readable reactive filter state; well suited to a filter-driven dashboard. |
-| Charts | **Observable Plot** + **d3** (brush, geo) | SVG output that is accessible and fully stylable; Plot is actively maintained. |
+| Charts | Small custom Svelte SVG components on **d3** scales/shapes/geo | Full control of the visual system (hatching, emphasis, crosshairs, keyboard readouts). Observable Plot was planned, but the custom components ended up smaller and closer to the design. |
 | Map | `world-atlas` 110m TopoJSON + `d3-geo` (Equal Earth projection) | About 100 KB and an honest area projection. |
-| Tests | **Vitest** (aggregation parity with SQL) + **Playwright** smoke test with screenshots | Catches numbers drifting and broken pages. |
+| Tests | **Vitest** parity tests (browser aggregation vs the SQL pack) + `svelte-check`; visual QA by headless-Chrome screenshots in both themes at desktop and phone widths | Catches numbers drifting and broken pages. |
 | Hosting | **GitHub Pages** via Actions: run the pipeline, then `web-export`, then `vite build`, then deploy | Free, lives with the repo and rebuilds weekly. |
 
 Rejected options: **Observable Framework** (its releases have slowed since March 2026 and it imposes its own look), **Streamlit/Dash** (needs a server and looks generic), **DuckDB-WASM for every page** (a 6 MB+ cold start on mobile for no reader-visible gain). DuckDB-WASM may come back later as an opt-in "Run the SQL pack in your browser" panel on the Data & methods page.

@@ -9,7 +9,7 @@ import sys
 
 import pandas as pd
 
-from . import export, forecast, ingest, quality, transform, warehouse
+from . import export, forecast, ingest, quality, transform, warehouse, web
 from .config import DEFAULT_END_DATE, DEFAULT_START_DATE, DUCKDB_PATH, FORECAST_PATH
 
 log = logging.getLogger("covid_pipeline")
@@ -46,6 +46,7 @@ def _parser() -> argparse.ArgumentParser:
     target(sub.add_parser("warehouse", help="load curated tables into the star schema"))
     fc(sub.add_parser("forecast", help="backtest + forecast weekly deaths"))
     sub.add_parser("export", help="write the dashboard extract (actuals + forecasts)")
+    sub.add_parser("web-export", help="write the web dashboard data files (dashboard/public/data)")
     return parser
 
 
@@ -98,6 +99,8 @@ def main(argv: list[str] | None = None) -> None:
         _load_warehouse(args, *transform.load_curated())
     elif args.command == "forecast":
         _forecast(args, transform.load_curated()[1])
+    elif args.command == "web-export":
+        web.export_web_data()
     elif args.command == "export":
         forecasts = pd.read_csv(FORECAST_PATH, parse_dates=["origin_date", "target_date"]) if FORECAST_PATH.exists() else None
         export.build_extract(transform.load_curated()[1], forecasts)
