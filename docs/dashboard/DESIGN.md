@@ -83,7 +83,7 @@ A metric keeps its hue on every page, in every chart, legend and table key. Vali
 ### Layout
 
 - **Desktop (≥1024 px):** a 72 px left rail (icon + short label) and a fluid content column up to 1280 px, left-aligned on a 12-column grid.
-- **Mobile:** the rail becomes a bottom tab bar, the spine stays as a slim brush, and charts stack.
+- **Mobile (below 900 px):** the rail is replaced by a slim top bar showing the page name, with a menu button that opens a drawer listing every page plus the theme switch. A bottom tab bar was tried first, but seven pages plus the theme switch made it crowded; a four-tabs-plus-More bar and scrolling top tabs were also prototyped before choosing the drawer as the most standard pattern. Charts stack in one column.
 - **No card chrome.** Views sit directly on the page plane, separated by whitespace and a single hairline per section. Headline stats are typographic (a large number with a label underneath), not boxed tiles.
 
 ### Chart anatomy (every view)

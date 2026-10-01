@@ -5,13 +5,13 @@
  */
 
 export const PAGES = [
-  { id: "overview", label: "Overview", short: "Overview" },
-  { id: "map", label: "Where it hit", short: "Map" },
-  { id: "country", label: "Country", short: "Country" },
-  { id: "vaccines", label: "Vaccines", short: "Vaccines" },
-  { id: "hospitals", label: "Hospitals", short: "Hospitals" },
-  { id: "outlook", label: "Outlook", short: "Outlook" },
-  { id: "data", label: "Data", short: "Data" },
+  { id: "overview", label: "Overview" },
+  { id: "map", label: "Where it hit" },
+  { id: "country", label: "Country" },
+  { id: "vaccines", label: "Vaccines" },
+  { id: "hospitals", label: "Hospitals" },
+  { id: "outlook", label: "Outlook" },
+  { id: "data", label: "Data" },
 ] as const;
 
 export type PageId = (typeof PAGES)[number]["id"];

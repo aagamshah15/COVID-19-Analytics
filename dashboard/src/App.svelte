@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Component } from "svelte";
+  import MobileNav from "./components/MobileNav.svelte";
   import Rail from "./components/Rail.svelte";
   import { loadDataset } from "./lib/data/load";
   import type { Dataset } from "./lib/data/types";
@@ -32,10 +33,19 @@
   let View = $derived(VIEWS[app.page]);
 </script>
 
-<a class="skip" href="#main">Skip to content</a>
+<a
+  class="skip"
+  href={app.link(app.page, app.iso)}
+  onclick={(e) => {
+    // Hash routing owns the URL fragment, so move focus instead of jumping to #main.
+    e.preventDefault();
+    document.getElementById("main")?.focus();
+  }}>Skip to content</a
+>
 <div class="app">
+  <MobileNav />
   <Rail />
-  <main id="main">
+  <main id="main" tabindex="-1">
     {#if error}
       <div class="empty" role="alert">
         <h2>The data didn't load</h2>
@@ -99,7 +109,8 @@
       grid-template-columns: minmax(0, 1fr);
     }
     main {
-      padding-bottom: 96px;
+      padding-top: 20px;
+      padding-bottom: 32px;
     }
   }
 </style>
