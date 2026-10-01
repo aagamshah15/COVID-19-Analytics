@@ -49,6 +49,8 @@
   .mark svg {
     width: 40px;
     height: 28px;
+    /* The logo is solid bars; keep the icon outline style below from applying to it. */
+    stroke: none;
   }
   a:not(.mark),
   .theme {
