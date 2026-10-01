@@ -69,7 +69,7 @@
   let periodText = $derived(app.isWholePeriod ? "from 2020 to 2023" : `from ${day(data.weeks[range[0]])} to ${day(data.weeks[range[1]])}`);
 </script>
 
-<Controls {data} showRegion={false} />
+<Controls {data} showRegion={false} showCountry />
 
 <header class="hero">
   <h1>{country.name}</h1>

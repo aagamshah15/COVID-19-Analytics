@@ -5,7 +5,12 @@
   import { app, PRESETS } from "../lib/state/app.svelte";
   import CountrySearch from "./CountrySearch.svelte";
 
-  let { data, showRegion = true, showMeasure = true }: { data: Dataset; showRegion?: boolean; showMeasure?: boolean } = $props();
+  let {
+    data,
+    showRegion = true,
+    showMeasure = true,
+    showCountry = false,
+  }: { data: Dataset; showRegion?: boolean; showMeasure?: boolean; showCountry?: boolean } = $props();
 
   const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "Oceania", "South America"];
   let preset = $derived(PRESETS.find((p) => p.from === app.from && p.to === app.to));
@@ -40,7 +45,9 @@
       <button aria-pressed={app.measure === "abs"} onclick={() => app.set({ measure: "abs" })}>Absolute</button>
     </div>
   {/if}
-  <CountrySearch countries={data.countries} onpick={(c) => app.go("country", c.iso)} />
+  {#if showCountry}
+    <CountrySearch countries={data.countries} onpick={(c) => app.go("country", c.iso)} placeholder="Find another country" label="Find another country" />
+  {/if}
 </div>
 
 <style>
