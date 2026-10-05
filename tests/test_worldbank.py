@@ -1,9 +1,12 @@
 import json
+import urllib.error
 
+import pandas as pd
 import pytest
 from conftest import worldbank_payload
 
 from covid_pipeline import worldbank
+from covid_pipeline.config import WORLDBANK_SNAPSHOT_PATH
 from covid_pipeline.worldbank import load_worldbank
 
 
@@ -50,6 +53,61 @@ def test_fetch_is_all_or_nothing(monkeypatch, tmp_path):
     monkeypatch.setattr(worldbank, "_get_json", fake)
     dest = tmp_path / "wb.json"
     with pytest.raises(ValueError, match="BAD"):
-        worldbank.fetch_worldbank(dest)
+        worldbank.fetch_worldbank(dest, snapshot_path=tmp_path / "no-snapshot.json")
     assert not dest.exists()
     assert not list(tmp_path.glob("*.part"))
+
+
+def _api_down(url: str) -> list:
+    raise urllib.error.HTTPError(url, 502, "Bad Gateway", None, None)
+
+
+def test_snapshot_loads_to_the_same_profile(tmp_path):
+    payload = worldbank_payload(["FRA", "XKX", "AAA"])
+    raw, slim = tmp_path / "raw.json", tmp_path / "slim.json"
+    raw.write_text(json.dumps(payload))
+    worldbank.write_snapshot(raw, slim)
+
+    pd.testing.assert_frame_equal(load_worldbank(slim), load_worldbank(raw))
+    assert slim.stat().st_size < raw.stat().st_size
+    with pytest.raises(ValueError, match="itself the snapshot"):  # a snapshot can't refresh itself
+        worldbank.write_snapshot(slim, tmp_path / "again.json")
+
+
+def test_fetch_falls_back_to_the_snapshot_when_the_api_is_down(monkeypatch, tmp_path):
+    raw, slim, dest = tmp_path / "raw.json", tmp_path / "slim.json", tmp_path / "wb.json"
+    raw.write_text(json.dumps(worldbank_payload(["FRA", "AAA"])))
+    worldbank.write_snapshot(raw, slim)
+    monkeypatch.setattr(worldbank, "_get_json", _api_down)
+
+    assert worldbank.fetch_worldbank(dest, snapshot_path=slim) == "snapshot"
+    pd.testing.assert_frame_equal(load_worldbank(dest), load_worldbank(raw))
+
+
+def test_fetch_falls_back_when_the_api_is_too_slow(monkeypatch, tmp_path):
+    raw, slim, dest = tmp_path / "raw.json", tmp_path / "slim.json", tmp_path / "wb.json"
+    raw.write_text(json.dumps(worldbank_payload(["FRA", "AAA"])))
+    worldbank.write_snapshot(raw, slim)
+    monkeypatch.setattr(worldbank, "_get_json", lambda url: _page("x", 1, 1))  # answers, but the time is already up
+
+    assert worldbank.fetch_worldbank(dest, snapshot_path=slim, budget=-1) == "snapshot"
+    pd.testing.assert_frame_equal(load_worldbank(dest), load_worldbank(raw))
+
+
+def test_fetch_fails_when_the_api_is_down_and_the_snapshot_is_incomplete(monkeypatch, tmp_path):
+    raw, slim, dest = tmp_path / "raw.json", tmp_path / "slim.json", tmp_path / "wb.json"
+    raw.write_text(json.dumps(worldbank_payload(["FRA"])))
+    worldbank.write_snapshot(raw, slim)
+    monkeypatch.setattr(worldbank, "_get_json", _api_down)
+    monkeypatch.setattr(worldbank, "INDICATORS", worldbank.INDICATORS | {"new": "NEW.CODE"})
+
+    with pytest.raises(ValueError, match="NEW.CODE"):
+        worldbank.fetch_worldbank(dest, snapshot_path=slim)
+    assert not dest.exists()
+
+
+def test_versioned_snapshot_covers_every_indicator():
+    """Adding an indicator without refreshing the snapshot would break the fallback."""
+    payload = json.loads(WORLDBANK_SNAPSHOT_PATH.read_text())
+    assert set(payload["indicators"]) == set(worldbank.INDICATORS.values())
+    assert all(len(rows) > 150 for rows in payload["indicators"].values())
