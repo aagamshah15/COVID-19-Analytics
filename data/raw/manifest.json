@@ -2,15 +2,22 @@
   "owid": {
     "url": "https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv",
     "path": "data/raw/owid_covid_compact.csv",
-    "fetched_at_utc": "2026-10-01T03:36:14+00:00",
-    "bytes": 182249932,
-    "sha256": "5318e2975f058e4c4e640cc424b9a92e7b347c4f2ba017c9520dc9b252766fe2"
+    "fetched_at_utc": "2026-10-02T17:20:51+00:00",
+    "bytes": 182217278,
+    "sha256": "7481c676492771e8425b118eaa983e987dd7312989ddcf7c67de09e635c53abc"
   },
   "who": {
     "url": "https://srhdpeuwpubsa.blob.core.windows.net/whdh/COVID/WHO-COVID-19-global-daily-data.csv",
     "path": "data/raw/who_covid_daily.csv",
-    "fetched_at_utc": "2026-10-01T03:36:24+00:00",
+    "fetched_at_utc": "2026-10-02T17:20:54+00:00",
     "bytes": 26553053,
     "sha256": "47afc78d45fa38929d9c66b401a222292ba4b9d4159cfe30b97d2baee7c63b2e"
+  },
+  "worldbank": {
+    "url": "https://api.worldbank.org/v2/country/all/indicator/{indicator}?format=json&source=2&per_page=20000&date=2010:2019",
+    "path": "data/raw/worldbank_wdi.json",
+    "fetched_at_utc": "2026-10-02T17:21:18+00:00",
+    "bytes": 31366018,
+    "sha256": "d8c5f1334c10be426cfff6e5e113565017a7f32cba211dd05690ce39370f81c9"
   }
 }

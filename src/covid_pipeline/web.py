@@ -25,6 +25,7 @@ from .config import (
     FORECAST_PATH,
     PROJECT_ROOT,
     RAW_MANIFEST_PATH,
+    SIMULATOR_MODEL_PATH,
     WEEKLY_PATH,
 )
 from .warehouse import load_query_pack
@@ -174,5 +175,12 @@ def export_web_data(out_dir: Path = WEB_DATA_DIR) -> dict[str, int]:
         path = out_dir / name
         path.write_text(json.dumps(payload, separators=(",", ":"), allow_nan=False))
         sizes[name] = path.stat().st_size
+    # The simulator page loads its trained model separately, only when it opens.
+    if SIMULATOR_MODEL_PATH.exists():
+        target = out_dir / "simulator.json"
+        target.write_text(SIMULATOR_MODEL_PATH.read_text())
+        sizes["simulator.json"] = target.stat().st_size
+    else:
+        log.warning("No trained simulator at %s: run `covid-pipeline sim-train` for the Simulator page", SIMULATOR_MODEL_PATH)
     log.info("Web data written to %s: %s", out_dir, {k: f"{v / 1024:.0f} KB" for k, v in sizes.items()})
     return sizes

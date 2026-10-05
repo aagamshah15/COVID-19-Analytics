@@ -43,10 +43,25 @@ def _country_frame(iso, name, continent, population, amplitude, dates, rng) -> p
             "gdp_per_capita": 20_000.0,
             "life_expectancy": 78.0,
             "human_development_index": 0.85,
+            # Simulator signals: a lockdown in spring 2020, then moderate measures until the index ends.
+            "stringency_index": np.select(
+                [dates < "2020-03-15", dates < "2020-06-01", dates <= "2022-12-31"], [0.0, 75.0, 40.0], default=np.nan
+            ),
+            "reproduction_rate": 1 + 0.4 * np.sin(2 * np.pi * t / 120),
+            "population_density": 100.0,
+            "diabetes_prevalence": 7.0,
+            "extreme_poverty": np.nan if continent == "Europe" else 5.0,
+            "handwashing_facilities": np.nan,
         }
     )
     df["total_cases"] = df["new_cases"].cumsum()
     df["total_deaths"] = df["new_deaths"].cumsum()
+    # Excess deaths are reported weekly (Sundays) and run 50% above reported deaths; Cland has none.
+    sundays = df["date"].dt.weekday == 6
+    df["excess_mortality_cumulative_absolute"] = np.where(sundays & (iso != "CCC"), df["total_deaths"] * 1.5, np.nan)
+    if iso == "CCC":
+        # The Kalman-filter Rt dips fractionally below zero when there are almost no cases.
+        df.loc[df["date"] < "2020-01-15", "reproduction_rate"] = -0.001
     return df
 
 
@@ -89,3 +104,56 @@ def curated(owid):
 
     daily = clean_daily(owid.assign(who_region="EUR", who_matched=True))
     return daily, build_weekly(daily)
+
+
+def worldbank_payload(isos: list[str]) -> dict:
+    """Raw World Bank payload (as stored by fetch_worldbank) for the given ISO3 codes.
+
+    For the first country, women: every 5-year group 0-79 is 5.5% and 80+ is 12%. Men: groups 0-19
+    are 7% each, 20-79 are 5.5% each and 80+ is 6%. Half the population is female, so the 0-19 band
+    is 25% and 80+ is 9%. Later countries are progressively older, and their other indicators differ
+    too, so the models have variation to learn from.
+    """
+    from covid_pipeline.worldbank import AGE_GROUPS, STATIC_INDICATORS
+
+    def rows(values: dict[str, float], year: str = "2019") -> list[dict]:
+        return [{"countryiso3code": iso, "date": year, "value": v} for iso, v in values.items()]
+
+    indicators = {code: rows({iso: 10.0 + 2 * i for i, iso in enumerate(isos)}) for code in STATIC_INDICATORS.values()}
+    indicators["SP.POP.TOTL.FE.ZS"] = rows({iso: 50.0 for iso in isos})
+    # An older year and a regional aggregate must not leak into the latest value.
+    indicators["SH.MED.PHYS.ZS"] += rows({isos[0]: 99.0}, year="2012") + rows({"WLD": 1.0})
+    indicators["SH.MED.BEDS.ZS"] = rows({iso: 2.0 for iso in isos})
+    for group in AGE_GROUPS:
+        female = 12.0 if group == "80UP" else 5.5
+        male = 6.0 if group == "80UP" else (7.0 if group in {"0004", "0509", "1014", "1519"} else 5.5)
+        # Each later country moves i points of women from ages 0-4 to 80+.
+        shift = {"80UP": 1.0, "0004": -1.0}.get(group, 0.0)
+        indicators[f"SP.POP.{group}.FE.5Y"] = rows({iso: female + shift * i for i, iso in enumerate(isos)})
+        indicators[f"SP.POP.{group}.MA.5Y"] = rows({iso: male for iso in isos})
+    return {"fetched_at_utc": "2026-10-01T00:00:00+00:00", "years": "2010:2019", "indicators": indicators}
+
+
+@pytest.fixture(scope="session")
+def worldbank(tmp_path_factory):
+    """Parsed World Bank frame for the synthetic countries, except Namibia (no World Bank data)."""
+    import json
+
+    from covid_pipeline.worldbank import load_worldbank
+
+    path = tmp_path_factory.mktemp("wb") / "worldbank_wdi.json"
+    path.write_text(json.dumps(worldbank_payload([c[0] for c in COUNTRIES if c[0] != "NAM"])))
+    return load_worldbank(path)
+
+
+# Synthetic countries aren't on the world map: give them latitudes in both hemispheres.
+LATITUDES = {"AAA": 50.0, "BBB": 30.0, "CCC": -5.0, "DDD": -20.0, "EEE": 45.0}
+
+
+@pytest.fixture(scope="session")
+def sim_tables(curated, worldbank):
+    from covid_pipeline.simulator.features import build_sim_tables
+
+    profile, sim_weekly = build_sim_tables(*curated, worldbank, save=False)
+    profile["latitude"] = profile["latitude"].fillna(profile["iso_code"].map(LATITUDES))
+    return profile, sim_weekly

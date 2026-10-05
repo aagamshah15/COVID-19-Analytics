@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass
 import pandas as pd
 
 from .config import DEFAULT_END_DATE, DEFAULT_START_DATE, DQ_REPORT_PATH, DQThresholds, ensure_directories
+from .simulator.features import AGE_SHARE_COLUMNS
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +63,10 @@ def run_checks(
     start_date: str = DEFAULT_START_DATE,
     end_date: str = DEFAULT_END_DATE,
     thresholds: DQThresholds | None = None,
+    profile: pd.DataFrame | None = None,
+    sim_weekly: pd.DataFrame | None = None,
 ) -> DQResult:
+    """Checks on the curated tables, plus the simulator's inputs when ``profile``/``sim_weekly`` are given."""
     t = thresholds or DQThresholds()
     checks: list[Check] = []
 
@@ -160,6 +164,57 @@ def run_checks(
         _pct(vax_coverage),
         f">= {_pct(t.min_vaccination_coverage_2022)} of 2022 country-weeks",
     )
+
+    # --- simulator inputs (warn: they never block the warehouse) ---------------------------
+    if profile is not None:
+        age_cols = [c for c in AGE_SHARE_COLUMNS if c in profile.columns]
+        with_ages = profile.dropna(subset=age_cols) if age_cols else profile.iloc[0:0]
+        if "age_source" in profile.columns:
+            with_ages = with_ages[with_ages["age_source"] == "worldbank"]
+        add(
+            "sim_age_structure_coverage",
+            "warn",
+            len(with_ages) >= t.min_profile_countries,
+            f"{len(with_ages)} countries",
+            f">= {t.min_profile_countries} countries with a World Bank age structure",
+        )
+        share_error = float((with_ages[age_cols].sum(axis=1) - 1).abs().max()) if len(with_ages) else 0.0
+        add(
+            "sim_age_shares_sum_to_one",
+            "warn",
+            share_error <= t.max_age_share_error,
+            f"max error {share_error:.4f}",
+            f"<= {t.max_age_share_error}",
+        )
+        n_excess = int(profile.get("excess_deaths_pm_2021", pd.Series(dtype=float)).notna().sum())
+        add(
+            "sim_excess_mortality_coverage",
+            "warn",
+            n_excess >= t.min_excess_mortality_countries,
+            f"{n_excess} countries",
+            f">= {t.min_excess_mortality_countries} countries with excess deaths to end-2021",
+        )
+
+    if sim_weekly is not None:
+        stringency = sim_weekly.dropna(subset=["stringency_index"]) if "stringency_index" in sim_weekly else sim_weekly.iloc[0:0]
+        n_stringency = stringency["iso_code"].nunique()
+        add(
+            "sim_stringency_coverage",
+            "warn",
+            n_stringency >= t.min_stringency_countries,
+            f"{n_stringency} countries",
+            f">= {t.min_stringency_countries} countries with a stringency index",
+        )
+        rt_clipped = int(sim_weekly.get("rt_clipped", pd.Series(dtype=bool)).fillna(False).sum())
+        add(
+            "sim_negative_rt_clipped",
+            "warn",
+            rt_clipped == 0,
+            f"{rt_clipped} country-weeks clipped to 0",
+            "no negative Rt estimates in source",
+        )
+        rt_high = int((sim_weekly.get("reproduction_rate", pd.Series(dtype=float)) > 10).sum())
+        add("sim_reproduction_rate_plausible", "warn", rt_high == 0, f"{rt_high} country-weeks", "Rt <= 10")
 
     return DQResult(checks)
 

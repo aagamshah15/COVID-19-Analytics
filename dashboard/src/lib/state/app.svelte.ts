@@ -1,6 +1,7 @@
 /**
  * App state: route + global filters, mirrored in the URL hash so every view is linkable.
  *   #/<page>[/<ISO3>]?from=YYYY-MM-DD&to=YYYY-MM-DD&region=<key>&measure=pm|abs
+ *   #/simulator/<ISO3>?s=<scenario>   (the simulator's scenario, base64url; see lib/sim/spec.ts)
  * Adding a page = one entry in PAGES (see App.svelte for the component map).
  */
 
@@ -11,6 +12,7 @@ export const PAGES = [
   { id: "vaccines", label: "Vaccines" },
   { id: "hospitals", label: "Hospitals" },
   { id: "outlook", label: "Outlook" },
+  { id: "simulator", label: "Simulator" },
   { id: "data", label: "Data" },
 ] as const;
 
@@ -44,8 +46,12 @@ function parse(hash: string) {
     to: date(q.get("to"), END),
     region: q.get("region") || "all",
     measure: (q.get("measure") === "abs" ? "abs" : "pm") as Measure,
+    sim: q.get("s") ?? "",
   };
 }
+
+/** Pages whose nav link carries the current country. (The simulator always opens blank.) */
+export const COUNTRY_PAGES: PageId[] = ["country"];
 
 class AppState {
   page = $state<PageId>("overview");
@@ -54,6 +60,7 @@ class AppState {
   to = $state(END);
   region = $state("all");
   measure = $state<Measure>("pm");
+  sim = $state("");
   theme = $state<Theme>("system");
 
   constructor() {
@@ -76,6 +83,7 @@ class AppState {
     this.to = s.to;
     this.region = s.region;
     this.measure = s.measure;
+    this.sim = s.sim;
   }
 
   private href(page: PageId, iso: string | null, filters: Partial<Pick<AppState, "from" | "to" | "region" | "measure">> = {}) {
@@ -85,6 +93,7 @@ class AppState {
     if (f.to !== END) q.set("to", f.to);
     if (f.region !== "all") q.set("region", f.region);
     if (f.measure !== "pm") q.set("measure", f.measure);
+    if (page === "simulator" && this.page === "simulator" && this.sim) q.set("s", this.sim);
     const qs = q.toString();
     return `#/${page}${iso ? `/${iso}` : ""}${qs ? `?${qs}` : ""}`;
   }
@@ -103,6 +112,13 @@ class AppState {
     const next = this.href(this.page, this.iso, filters);
     history.replaceState(null, "", next);
     Object.assign(this, filters);
+  }
+
+  /** Store the simulator's scenario in the URL without adding a history entry per slider move. */
+  setSim(encoded: string, iso: string | null) {
+    this.sim = encoded;
+    this.iso = iso;
+    history.replaceState(null, "", this.href("simulator", iso));
   }
 
   setTheme(theme: Theme) {

@@ -15,3 +15,9 @@ cumulative_deaths_lte_cases,warn,False,"221 rows (Botswana, France, Germany, Mau
 who_join_match_rate,warn,True,98.66%,>= 90.00%
 death_reporting_active_at_end,warn,False,27 countries stopped reporting (1430 gap weeks nulled),every country still reporting deaths in the final week
 vaccination_coverage_2022,warn,True,90.64%,>= 60.00% of 2022 country-weeks
+sim_age_structure_coverage,warn,True,216 countries,>= 150 countries with a World Bank age structure
+sim_age_shares_sum_to_one,warn,True,max error 0.0000,<= 0.01
+sim_excess_mortality_coverage,warn,True,127 countries,>= 100 countries with excess deaths to end-2021
+sim_stringency_coverage,warn,True,185 countries,>= 150 countries with a stringency index
+sim_negative_rt_clipped,warn,False,217 country-weeks clipped to 0,no negative Rt estimates in source
+sim_reproduction_rate_plausible,warn,True,0 country-weeks,Rt <= 10

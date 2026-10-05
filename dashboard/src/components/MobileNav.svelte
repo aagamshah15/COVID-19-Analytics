@@ -5,12 +5,12 @@
    * The drawer is a native <dialog>, so focus is trapped and Escape closes it.
    */
   import { CLOSE_ICON, ICONS, MENU_ICON, THEMES } from "../lib/nav";
-  import { app, PAGES } from "../lib/state/app.svelte";
+  import { app, COUNTRY_PAGES, PAGES } from "../lib/state/app.svelte";
 
   let current = $derived(PAGES.find((p) => p.id === app.page) ?? PAGES[0]);
   let theme = $derived(THEMES.find((t) => t.id === app.theme) ?? THEMES[0]);
   const nextTheme = () => app.setTheme(THEMES[(THEMES.findIndex((t) => t.id === app.theme) + 1) % THEMES.length].id);
-  const href = (id: (typeof PAGES)[number]["id"]) => app.link(id, id === "country" ? app.iso : null);
+  const href = (id: (typeof PAGES)[number]["id"]) => app.link(id, COUNTRY_PAGES.includes(id) ? app.iso : null);
 
   let drawer = $state<HTMLDialogElement>();
   const open = () => drawer?.showModal();

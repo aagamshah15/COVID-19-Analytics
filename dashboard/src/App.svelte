@@ -11,6 +11,7 @@
   import MapPage from "./pages/Map.svelte";
   import Outlook from "./pages/Outlook.svelte";
   import Overview from "./pages/Overview.svelte";
+  import Simulator from "./pages/Simulator.svelte";
   import Vaccines from "./pages/Vaccines.svelte";
 
   // One entry per page in PAGES (lib/state/app.svelte.ts). A future page plugs in here.
@@ -21,6 +22,7 @@
     vaccines: Vaccines,
     hospitals: Hospitals,
     outlook: Outlook,
+    simulator: Simulator,
     data: DataPage,
   };
 

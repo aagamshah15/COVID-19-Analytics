@@ -1,7 +1,7 @@
 <script lang="ts">
   /** Desktop navigation rail. Below 900px it is hidden and MobileNav takes over. */
   import { ICONS, THEMES } from "../lib/nav";
-  import { app, PAGES } from "../lib/state/app.svelte";
+  import { app, COUNTRY_PAGES, PAGES } from "../lib/state/app.svelte";
 
   let current = $derived(THEMES.find((t) => t.id === app.theme) ?? THEMES[0]);
   const next = () => app.setTheme(THEMES[(THEMES.findIndex((t) => t.id === app.theme) + 1) % THEMES.length].id);
@@ -16,7 +16,7 @@
     </svg>
   </a>
   {#each PAGES as p}
-    <a href={app.link(p.id, p.id === "country" ? app.iso : null)} aria-current={app.page === p.id ? "page" : undefined} title={p.label}>
+    <a href={app.link(p.id, COUNTRY_PAGES.includes(p.id) ? app.iso : null)} aria-current={app.page === p.id ? "page" : undefined} title={p.label}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[p.id]} /></svg>
       <span>{p.label}</span>
     </a>

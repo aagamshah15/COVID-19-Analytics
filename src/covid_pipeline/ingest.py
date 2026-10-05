@@ -18,7 +18,19 @@ from pathlib import Path
 import pandas as pd
 import pycountry
 
-from .config import OWID_URL, PROJECT_ROOT, RAW_MANIFEST_PATH, RAW_OWID_PATH, RAW_WHO_PATH, WHO_URL, ensure_directories
+from .config import (
+    OWID_URL,
+    PROJECT_ROOT,
+    RAW_MANIFEST_PATH,
+    RAW_OWID_PATH,
+    RAW_WHO_PATH,
+    RAW_WORLDBANK_PATH,
+    WHO_URL,
+    WORLDBANK_URL,
+    ensure_directories,
+)
+from .worldbank import YEARS as WORLDBANK_YEARS
+from .worldbank import fetch_worldbank
 
 log = logging.getLogger(__name__)
 
@@ -42,6 +54,14 @@ OWID_COLUMNS = {
     "gdp_per_capita": "gdp_per_capita",
     "life_expectancy": "life_expectancy",
     "human_development_index": "human_development_index",
+    # Simulator signals: policy stringency and Rt (time-varying), excess deaths, country attributes.
+    "stringency_index": "stringency_index",
+    "reproduction_rate": "reproduction_rate",
+    "excess_mortality_cumulative_absolute": "excess_mortality_cumulative_absolute",
+    "population_density": "population_density",
+    "diabetes_prevalence": "diabetes_prevalence",
+    "extreme_poverty": "extreme_poverty",
+    "handwashing_facilities": "handwashing_facilities",
 }
 
 WHO_COLUMNS = {
@@ -85,12 +105,13 @@ def _sha256(path: Path) -> str:
 
 
 def fetch_sources(offline: bool = False) -> dict:
-    """Download both sources into the raw layer and write a manifest.
+    """Download every source into the raw layer and write a manifest.
 
     With ``offline=True`` nothing is downloaded and the existing raw files are used.
     """
     ensure_directories()
-    sources = {"owid": (OWID_URL, RAW_OWID_PATH), "who": (WHO_URL, RAW_WHO_PATH)}
+    worldbank_url = WORLDBANK_URL.format(indicator="{indicator}", years=WORLDBANK_YEARS)
+    sources = {"owid": (OWID_URL, RAW_OWID_PATH), "who": (WHO_URL, RAW_WHO_PATH), "worldbank": (worldbank_url, RAW_WORLDBANK_PATH)}
 
     if offline:
         missing = [str(path) for _, path in sources.values() if not path.exists()]
@@ -104,7 +125,10 @@ def fetch_sources(offline: bool = False) -> dict:
     manifest = {}
     for name, (url, path) in sources.items():
         log.info("Downloading %s from %s", name, url)
-        _download(url, path)
+        if name == "worldbank":
+            fetch_worldbank(path)
+        else:
+            _download(url, path)
         manifest[name] = {
             "url": url,
             "path": str(path.relative_to(PROJECT_ROOT)),

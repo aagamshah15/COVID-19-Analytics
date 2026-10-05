@@ -121,10 +121,15 @@ def flag_reporting_gaps(
     return gap
 
 
+def week_ending(dates: pd.Series) -> pd.Series:
+    """The Sunday that ends each date's ISO week."""
+    return dates + pd.to_timedelta((6 - dates.dt.weekday) % 7, unit="D")
+
+
 def build_weekly(daily: pd.DataFrame) -> pd.DataFrame:
     """Aggregate to ISO weeks ending Sunday, keeping only complete 7-day weeks."""
     data = daily.copy()
-    data["week_end"] = data["date"] + pd.to_timedelta((6 - data["date"].dt.weekday) % 7, unit="D")
+    data["week_end"] = week_ending(data["date"])
 
     weekly = (
         data.groupby(["iso_code", "week_end"], sort=True)
