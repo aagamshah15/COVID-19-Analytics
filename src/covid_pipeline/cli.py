@@ -10,7 +10,11 @@ import sys
 import pandas as pd
 
 from . import export, forecast, ingest, quality, transform, warehouse, web
-from .config import DEFAULT_END_DATE, DEFAULT_START_DATE, DUCKDB_PATH, FORECAST_PATH
+from .config import COUNTRY_PROFILE_PATH, DEFAULT_END_DATE, DEFAULT_START_DATE, DUCKDB_PATH, FORECAST_PATH, SIM_WEEKLY_PATH
+from .simulator import features as sim_features
+from .simulator import fixtures as sim_fixtures
+from .simulator import train as sim_train
+from .worldbank import load_worldbank
 
 log = logging.getLogger("covid_pipeline")
 
@@ -35,11 +39,12 @@ def _parser() -> argparse.ArgumentParser:
         p.add_argument("--horizon-weeks", type=int, default=8)
         p.add_argument("--top-n", type=int, default=5, help="focus countries reported in the backtest")
 
-    run = sub.add_parser("run", help="ingest -> transform -> dq -> warehouse -> forecast -> export")
+    run = sub.add_parser("run", help="ingest -> transform -> sim features -> dq -> warehouse -> forecast -> export")
     window(run), offline(run), target(run), fc(run)
     run.add_argument("--skip-forecast", action="store_true")
+    run.add_argument("--skip-simulator", action="store_true", help="skip simulator training (about 10 minutes)")
 
-    offline(sub.add_parser("ingest", help="download raw OWID + WHO files"))
+    offline(sub.add_parser("ingest", help="download raw OWID, WHO and World Bank files"))
     t = sub.add_parser("transform", help="build curated daily/weekly tables from raw files")
     window(t)
     window(sub.add_parser("dq", help="run the data quality gate on curated tables"))
@@ -47,11 +52,15 @@ def _parser() -> argparse.ArgumentParser:
     fc(sub.add_parser("forecast", help="backtest + forecast weekly deaths"))
     sub.add_parser("export", help="write the dashboard extract (actuals + forecasts)")
     sub.add_parser("web-export", help="write the web dashboard data files (dashboard/public/data)")
+    sub.add_parser("sim-features", help="build the simulator's country profiles and weekly panel")
+    sub.add_parser("sim-train", help="fit, calibrate and validate the simulator; write simulator.json")
+    sub.add_parser("sim-fixtures", help="write the golden scenarios the browser engine is tested against")
     return parser
 
 
-def _gate(daily: pd.DataFrame, weekly: pd.DataFrame, start_date: str, end_date: str) -> None:
-    result = quality.run_dq(daily, weekly, start_date=start_date, end_date=end_date)
+def _gate(daily: pd.DataFrame, weekly: pd.DataFrame, start_date: str, end_date: str, sim: tuple | None = None) -> None:
+    profile, sim_weekly = sim or (None, None)
+    result = quality.run_dq(daily, weekly, start_date=start_date, end_date=end_date, profile=profile, sim_weekly=sim_weekly)
     log.info("DQ: %s/%s checks passed, %s warnings", sum(c.passed for c in result.checks), len(result.checks), len(result.warnings))
     if not result.passed:
         raise SystemExit(f"Data quality gate failed: {', '.join(c.name for c in result.errors)}")
@@ -84,23 +93,33 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "run":
         merged = ingest.ingest(offline=args.offline)
         daily, weekly = transform.transform(merged, args.start_date, args.end_date)
-        _gate(daily, weekly, args.start_date, args.end_date)
+        sim = sim_features.build_sim_tables(daily, weekly, load_worldbank())
+        _gate(daily, weekly, args.start_date, args.end_date, sim)
         _load_warehouse(args, daily, weekly)
         forecasts = None if args.skip_forecast else _forecast(args, weekly)
         export.build_extract(weekly, forecasts)
+        if not args.skip_simulator:
+            sim_train.train(*sim)
     elif args.command == "ingest":
         ingest.fetch_sources(offline=args.offline)
     elif args.command == "transform":
         merged = ingest.merge_sources(ingest.load_owid(), ingest.load_who())
         transform.transform(merged, args.start_date, args.end_date)
     elif args.command == "dq":
-        _gate(*transform.load_curated(), args.start_date, args.end_date)
+        sim = sim_features.load_sim_tables() if COUNTRY_PROFILE_PATH.exists() and SIM_WEEKLY_PATH.exists() else None
+        _gate(*transform.load_curated(), args.start_date, args.end_date, sim)
     elif args.command == "warehouse":
         _load_warehouse(args, *transform.load_curated())
     elif args.command == "forecast":
         _forecast(args, transform.load_curated()[1])
     elif args.command == "web-export":
         web.export_web_data()
+    elif args.command == "sim-features":
+        sim_features.build_sim_tables(*transform.load_curated(), load_worldbank())
+    elif args.command == "sim-train":
+        sim_train.train(*sim_features.load_sim_tables())
+    elif args.command == "sim-fixtures":
+        sim_fixtures.write_golden()
     elif args.command == "export":
         forecasts = pd.read_csv(FORECAST_PATH, parse_dates=["origin_date", "target_date"]) if FORECAST_PATH.exists() else None
         export.build_extract(transform.load_curated()[1], forecasts)

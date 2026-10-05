@@ -32,6 +32,7 @@
     "d3-geo": "^3.1.1",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
+    "jspdf": "^4.2.1",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2"
   }

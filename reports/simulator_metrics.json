@@ -1,0 +1,623 @@
+{
+  "version": "1.0.0",
+  "trained_at": "2026-10-05T01:28:11+00:00",
+  "runtime_seconds": 757.2,
+  "m1_lockdown_panel": {
+    "spec": "log Rt ~ stringency(lag 2w) x period + stringency x z(share 65+) + vaccination + era + latitude-weighted seasonal harmonic + country FE",
+    "n": 7882,
+    "countries": 152,
+    "r2": 0.33,
+    "periods": {
+      "2020H1": {
+        "coef_per_10": -0.03998,
+        "ci95": [
+          -0.04844,
+          -0.03152
+        ]
+      },
+      "2020H2": {
+        "coef_per_10": -0.06356,
+        "ci95": [
+          -0.07184,
+          -0.05527
+        ]
+      },
+      "2021H1": {
+        "coef_per_10": -0.04162,
+        "ci95": [
+          -0.05758,
+          -0.02565
+        ]
+      }
+    },
+    "adherence_interaction": {
+      "coef_per_10": -0.0366,
+      "ci95": [
+        -0.04581,
+        -0.0274
+      ]
+    },
+    "fatigue_ratio": 0.804,
+    "adherence_per_sd_65_plus": 0.707,
+    "z65_mean": 0.09134,
+    "z65_std": 0.06764,
+    "reduction_at_80": {
+      "2020H1": 0.274,
+      "2020H2": 0.399,
+      "2021H1": 0.283
+    },
+    "seasonality": {
+      "cos": {
+        "coef": 0.07641,
+        "ci95": [
+          0.05158,
+          0.10124
+        ]
+      },
+      "sin": {
+        "coef": 0.00267,
+        "ci95": [
+          -0.02186,
+          0.0272
+        ]
+      },
+      "amplitude_log_rt": 0.0765,
+      "peak_day_of_year_north": 2.0,
+      "winter_to_summer_reduction": 0.142,
+      "zero_below_latitude": 23.5,
+      "full_strength_latitude": 40.0
+    }
+  },
+  "m2_calibration": {
+    "countries": 137,
+    "npi_coef": -0.00746,
+    "npi_coef_90ci": [
+      -0.00809,
+      -0.00602
+    ],
+    "reduction_at_80": 0.449,
+    "reduction_at_80_90ci": [
+      0.382,
+      0.477
+    ],
+    "awareness_deaths_pm": 2.7547,
+    "awareness_deaths_pm_90ci": [
+      2.0058,
+      4.022
+    ],
+    "seasonality": 0.3884,
+    "seasonality_90ci": [
+      0.3255,
+      0.5
+    ],
+    "winter_to_summer_reduction": 0.559,
+    "season_peak_day_north": 2.0,
+    "surface": {
+      "npi_coef": [
+        -0.004,
+        -0.006,
+        -0.008,
+        -0.01,
+        -0.012
+      ],
+      "awareness_deaths_pm": [
+        0.5,
+        1.0,
+        2.0,
+        4.0,
+        8.0,
+        null
+      ],
+      "seasonality": [
+        0.0,
+        0.2,
+        0.35,
+        0.5
+      ],
+      "total_misfit": [
+        [
+          [
+            8648.2,
+            7312.1,
+            6688.0,
+            6517.8
+          ],
+          [
+            8007.8,
+            6525.9,
+            5959.8,
+            5934.7
+          ],
+          [
+            7796.0,
+            6209.1,
+            5688.0,
+            5693.8
+          ],
+          [
+            7790.1,
+            6155.2,
+            5748.8,
+            5828.6
+          ],
+          [
+            8362.7,
+            6527.7,
+            6138.0,
+            6338.5
+          ],
+          [
+            10300.7,
+            8290.5,
+            8633.9,
+            9489.0
+          ]
+        ],
+        [
+          [
+            8776.3,
+            7290.7,
+            6673.2,
+            6502.0
+          ],
+          [
+            7918.4,
+            6343.6,
+            5840.6,
+            5787.8
+          ],
+          [
+            7595.2,
+            5969.9,
+            5569.3,
+            5658.6
+          ],
+          [
+            7466.6,
+            5812.2,
+            5532.7,
+            5616.9
+          ],
+          [
+            7860.4,
+            6078.9,
+            5906.8,
+            5952.8
+          ],
+          [
+            9384.4,
+            7510.2,
+            7906.6,
+            8830.2
+          ]
+        ],
+        [
+          [
+            8618.1,
+            7298.1,
+            6728.5,
+            6549.7
+          ],
+          [
+            7752.3,
+            6365.1,
+            5946.4,
+            5798.2
+          ],
+          [
+            7344.9,
+            5908.5,
+            5515.3,
+            5642.3
+          ],
+          [
+            7186.1,
+            5807.7,
+            5532.4,
+            5780.7
+          ],
+          [
+            7351.5,
+            6046.2,
+            5758.4,
+            6071.6
+          ],
+          [
+            8252.5,
+            6963.2,
+            7085.0,
+            8160.9
+          ]
+        ],
+        [
+          [
+            8735.6,
+            7566.7,
+            6940.2,
+            7147.4
+          ],
+          [
+            7860.6,
+            6528.7,
+            6060.6,
+            6147.3
+          ],
+          [
+            7389.8,
+            6132.3,
+            5695.9,
+            5885.9
+          ],
+          [
+            7237.3,
+            6041.2,
+            5614.7,
+            5991.4
+          ],
+          [
+            7292.4,
+            6055.9,
+            5834.1,
+            6356.8
+          ],
+          [
+            7886.6,
+            6929.2,
+            7201.6,
+            8431.2
+          ]
+        ],
+        [
+          [
+            9127.5,
+            7889.3,
+            7671.3,
+            8658.9
+          ],
+          [
+            8132.5,
+            6892.2,
+            6651.4,
+            7433.5
+          ],
+          [
+            7587.2,
+            6371.0,
+            6261.7,
+            6956.2
+          ],
+          [
+            7400.2,
+            6152.9,
+            6240.2,
+            7000.3
+          ],
+          [
+            7466.1,
+            6162.9,
+            6339.6,
+            7286.2
+          ],
+          [
+            8316.0,
+            7234.8,
+            7561.8,
+            9094.2
+          ]
+        ]
+      ]
+    },
+    "median_fit_rmse_log": 0.535,
+    "transmission_range_p10_p90": [
+      0.57,
+      1.126
+    ],
+    "severity_range_p10_p90": [
+      0.265,
+      1.604
+    ],
+    "awareness_multiplier_range_p10_p90": [
+      0.122,
+      5.6
+    ],
+    "stage1_median_fit_rmse_log": 0.69
+  },
+  "m3_transmission": {
+    "n": 137,
+    "cv_r2_ridge": 0.254,
+    "cv_r2_gbm": 0.156,
+    "cv_mae_ridge": 0.1831,
+    "cv_mae_gbm": 0.1931,
+    "cv_mae_mean_only": 0.2271,
+    "alpha": 28.0722,
+    "residual_sd": 0.2456
+  },
+  "m3_severity": {
+    "n": 137,
+    "cv_r2_ridge": 0.18,
+    "cv_r2_gbm": -0.152,
+    "cv_mae_ridge": 0.5535,
+    "cv_mae_gbm": 0.6783,
+    "cv_mae_mean_only": 0.6295,
+    "alpha": 92.3671,
+    "residual_sd": 0.738
+  },
+  "m3_awareness": {
+    "n": 137,
+    "cv_r2_ridge": 0.127,
+    "cv_r2_gbm": -0.156,
+    "cv_mae_ridge": 0.9352,
+    "cv_mae_gbm": 1.0492,
+    "cv_mae_mean_only": 0.9848,
+    "alpha": 92.3671,
+    "residual_sd": 1.1329
+  },
+  "m4_vaccine_rollout": {
+    "countries_fitted": 157,
+    "median_curve_rmse": 0.0162,
+    "ceiling": {
+      "n": 157,
+      "cv_r2_ridge": 0.309,
+      "cv_r2_gbm": 0.277,
+      "cv_mae_ridge": 0.847,
+      "cv_mae_gbm": 0.8526,
+      "cv_mae_mean_only": 1.0401,
+      "alpha": 62.1017,
+      "residual_sd": 1.069
+    },
+    "speed": {
+      "n": 157,
+      "cv_r2_ridge": 0.481,
+      "cv_r2_gbm": 0.276,
+      "cv_mae_ridge": 0.483,
+      "cv_mae_gbm": 0.5419,
+      "cv_mae_mean_only": 0.7289,
+      "alpha": 62.1017,
+      "residual_sd": 0.6889
+    }
+  },
+  "m5_reporting": {
+    "n": 86,
+    "cv_r2_ridge": 0.233,
+    "cv_r2_gbm": 0.007,
+    "cv_mae_ridge": 1.7202,
+    "cv_mae_gbm": 1.9099,
+    "cv_mae_mean_only": 2.0118,
+    "alpha": 2.5929,
+    "residual_sd": 2.1342,
+    "median_observed": 0.668
+  },
+  "m6_wave_classifier": {
+    "waves": 381,
+    "countries": 149,
+    "class_thresholds_peak_weekly_deaths_per_million": [
+      7.59223,
+      23.244602,
+      56.347306
+    ],
+    "cv": "GroupKFold by country (5 folds)",
+    "scores": {
+      "logistic": {
+        "accuracy": 0.556,
+        "macro_f1": 0.552,
+        "roc_auc_ovr": 0.794,
+        "log_loss": 1.046
+      },
+      "gradient_boosting": {
+        "accuracy": 0.559,
+        "macro_f1": 0.557,
+        "roc_auc_ovr": 0.806,
+        "log_loss": 1.275
+      },
+      "era_only": {
+        "accuracy": 0.346,
+        "macro_f1": 0.321,
+        "roc_auc_ovr": 0.53,
+        "log_loss": 1.364
+      },
+      "class_frequencies": {
+        "accuracy": 0.252,
+        "macro_f1": 0.101,
+        "roc_auc_ovr": 0.5,
+        "log_loss": 1.386
+      }
+    },
+    "confusion_matrix_logistic": [
+      [
+        71,
+        20,
+        3,
+        1
+      ],
+      [
+        23,
+        42,
+        18,
+        12
+      ],
+      [
+        7,
+        19,
+        39,
+        30
+      ],
+      [
+        1,
+        12,
+        23,
+        60
+      ]
+    ],
+    "calibration_severe_logistic": [
+      {
+        "bin": 0,
+        "predicted": 0.038,
+        "observed": 0.033,
+        "n": 152
+      },
+      {
+        "bin": 1,
+        "predicted": 0.146,
+        "observed": 0.213,
+        "n": 61
+      },
+      {
+        "bin": 2,
+        "predicted": 0.243,
+        "observed": 0.122,
+        "n": 41
+      },
+      {
+        "bin": 3,
+        "predicted": 0.353,
+        "observed": 0.333,
+        "n": 24
+      },
+      {
+        "bin": 4,
+        "predicted": 0.446,
+        "observed": 0.667,
+        "n": 24
+      },
+      {
+        "bin": 5,
+        "predicted": 0.561,
+        "observed": 0.529,
+        "n": 17
+      },
+      {
+        "bin": 6,
+        "predicted": 0.662,
+        "observed": 0.529,
+        "n": 17
+      },
+      {
+        "bin": 7,
+        "predicted": 0.745,
+        "observed": 0.63,
+        "n": 27
+      },
+      {
+        "bin": 8,
+        "predicted": 0.836,
+        "observed": 0.8,
+        "n": 15
+      },
+      {
+        "bin": 9,
+        "predicted": 0.945,
+        "observed": 0.667,
+        "n": 3
+      }
+    ]
+  },
+  "m7_archetypes": {
+    "silhouette_by_k": {
+      "3": 0.265,
+      "4": 0.227,
+      "5": 0.207,
+      "6": 0.213,
+      "7": 0.184,
+      "8": 0.18
+    },
+    "k": 3,
+    "pca_explained_variance": [
+      0.537191,
+      0.113562
+    ],
+    "cluster_sizes": [
+      48,
+      52,
+      61
+    ]
+  },
+  "overload": "Literature prior (Bravata et al. 2021). OWID hospital data (36 countries, occupancy only) can't separate overload from case mix.",
+  "validation": {
+    "temporal_holdout": {
+      "no_awareness": {
+        "mae_weekly_deaths_pm": 99.195,
+        "median_country_mae": 39.08,
+        "wape": 5.099,
+        "mae_cumulative_deaths_pm": 2008.9,
+        "spearman_cumulative": 0.319,
+        "median_peak_week_error": 5.0,
+        "countries": 137
+      },
+      "no_policy_effect": {
+        "mae_weekly_deaths_pm": 22.236,
+        "median_country_mae": 15.605,
+        "wape": 1.143,
+        "mae_cumulative_deaths_pm": 415.9,
+        "spearman_cumulative": 0.228,
+        "median_peak_week_error": 4.0,
+        "countries": 137
+      },
+      "no_seasonality": {
+        "mae_weekly_deaths_pm": 21.863,
+        "median_country_mae": 16.86,
+        "wape": 1.124,
+        "mae_cumulative_deaths_pm": 382.2,
+        "spearman_cumulative": 0.218,
+        "median_peak_week_error": 7.0,
+        "countries": 137
+      },
+      "persistence": {
+        "mae_weekly_deaths_pm": 16.724,
+        "median_country_mae": 10.778,
+        "wape": 0.86,
+        "mae_cumulative_deaths_pm": 307.9,
+        "spearman_cumulative": 0.419,
+        "median_peak_week_error": 14.0,
+        "countries": 137
+      },
+      "simulator": {
+        "mae_weekly_deaths_pm": 23.481,
+        "median_country_mae": 17.389,
+        "wape": 1.207,
+        "mae_cumulative_deaths_pm": 425.6,
+        "spearman_cumulative": 0.278,
+        "median_peak_week_error": 5.0,
+        "countries": 137
+      }
+    },
+    "cross_country_hindcast": {
+      "continent_average": {
+        "mae_weekly_deaths_pm": 11.968,
+        "median_country_mae": 9.786,
+        "wape": 0.874,
+        "mae_cumulative_deaths_pm": 355.3,
+        "spearman_cumulative": 0.536,
+        "median_peak_week_error": 10.0,
+        "countries": 137
+      },
+      "nearest_analog": {
+        "mae_weekly_deaths_pm": 13.628,
+        "median_country_mae": 11.181,
+        "wape": 0.996,
+        "mae_cumulative_deaths_pm": 444.9,
+        "spearman_cumulative": 0.439,
+        "median_peak_week_error": 7.0,
+        "countries": 137
+      },
+      "simulator": {
+        "mae_weekly_deaths_pm": 19.21,
+        "median_country_mae": 14.72,
+        "wape": 1.404,
+        "mae_cumulative_deaths_pm": 639.8,
+        "spearman_cumulative": 0.046,
+        "median_peak_week_error": 8.0,
+        "countries": 137
+      },
+      "simulator_no_features": {
+        "mae_weekly_deaths_pm": 33.133,
+        "median_country_mae": 25.338,
+        "wape": 2.421,
+        "mae_cumulative_deaths_pm": 1296.1,
+        "spearman_cumulative": -0.268,
+        "median_peak_week_error": 10.0,
+        "countries": 137
+      }
+    },
+    "reading": "Scores are mean absolute errors in weekly deaths per million on data the fit never saw. The simulator beats its own ablations (no awareness, no features) but not simple statistical baselines at forecasting, which is why the app presents scenarios, not forecasts."
+  }
+}

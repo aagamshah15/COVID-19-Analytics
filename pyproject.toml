@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "covid-pipeline"
 version = "2.0.0"
-description = "COVID-19 global healthcare burden pipeline: OWID + WHO ETL, DuckDB star schema, data quality gate and weekly deaths forecasting"
+description = "COVID-19 global healthcare burden pipeline: OWID + WHO + World Bank ETL, DuckDB star schema, data quality gate, weekly deaths forecasting and a pandemic scenario simulator"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -14,6 +14,8 @@ dependencies = [
     "pyarrow>=15",
     "duckdb>=1.1",
     "scikit-learn>=1.4",
+    "scipy>=1.11",
+    "statsmodels>=0.14",
     "pycountry>=23.12",
 ]
 

@@ -6,7 +6,8 @@
     title: string;
     subtitle?: string;
     query?: string;
-    source?: string;
+    /** Where the data comes from; null leaves the line out (e.g. a page that states its source once). */
+    source?: string | null;
     columns?: Column[];
     rows?: Record<string, unknown>[];
     children: Snippet;
@@ -29,15 +30,17 @@
       <DataTable {columns} rows={rows ?? []} caption={title} />
     {/if}
   </div>
-  <figcaption>
-    <span>Source: {source}.{#if query}&nbsp;Query <code>{query}</code>{/if}</span>
-    {#if columns}
-      <span class="seg small" role="group" aria-label="View">
-        <button aria-pressed={view === "chart"} onclick={() => (view = "chart")}>Chart</button>
-        <button aria-pressed={view === "table"} onclick={() => (view = "table")}>Table</button>
-      </span>
-    {/if}
-  </figcaption>
+  {#if source || query || columns}
+    <figcaption>
+      {#if source || query}<span>{#if source}Source: {source}.{/if}{#if query}&nbsp;Query <code>{query}</code>{/if}</span>{/if}
+      {#if columns}
+        <span class="seg small view" role="group" aria-label="View">
+          <button aria-pressed={view === "chart"} onclick={() => (view = "chart")}>Chart</button>
+          <button aria-pressed={view === "table"} onclick={() => (view = "table")}>Table</button>
+        </span>
+      {/if}
+    </figcaption>
+  {/if}
 </figure>
 
 <style>
@@ -74,6 +77,9 @@
     border-top: 1px solid var(--hair);
     font-size: 12.5px;
     color: var(--muted);
+  }
+  .view {
+    margin-left: auto;
   }
   code {
     font-size: 12px;

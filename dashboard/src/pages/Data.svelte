@@ -62,15 +62,15 @@
   let cell = $derived((W - labelW) / data.weeks.length);
   let years = $derived(data.weeks.map((w, i) => ({ w, i })).filter(({ w, i }) => i === 0 || w.slice(0, 4) !== data.weeks[i - 1].slice(0, 4)));
 
-  const STAGES = [
-    { name: "Ingest", note: "OWID + WHO, verbatim" },
+  let STAGES = $derived([
+    { name: "Ingest", note: "OWID, WHO, World Bank" },
     { name: "Transform", note: "Clean, weekly, gaps" },
-    { name: "Quality gate", note: "16 checks" },
+    { name: "Quality gate", note: `${data.quality.checks.length} checks` },
     { name: "Warehouse", note: "DuckDB star schema" },
     { name: "SQL pack", note: "22 named queries" },
     { name: "Forecast", note: "Backtested model" },
     { name: "Dashboard", note: "This site" },
-  ];
+  ]);
 </script>
 
 <Controls {data} showMeasure={false} />

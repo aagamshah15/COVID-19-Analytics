@@ -7,6 +7,7 @@ export const ICONS: Record<PageId, string> = {
   vaccines: "m17 3 4 4M19 5l-9.5 9.5M8 12l4 4M6.5 13.5 4 16l4 4 2.5-2.5M3 21l2-2",
   hospitals: "M3 21V8l9-5 9 5v13M9 21v-6h6v6M12 7v4M10 9h4",
   outlook: "M3 17l5-5 4 3 4-6 5 4M16 9h5v5",
+  simulator: "M4 6h16M4 12h16M4 18h16M9 4v4M15 10v4M7 16v4",
   data: "M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6zM9 12l2 2 4-4",
 };
 
