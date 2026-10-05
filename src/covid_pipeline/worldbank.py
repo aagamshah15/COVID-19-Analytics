@@ -6,6 +6,12 @@ in one JSON file and fingerprinted in the manifest like the OWID and WHO sources
 
 Age structure comes from the WDI 5-year age groups by sex, aggregated to the simulator's five bands,
 so no age pyramid has to be guessed from the median age.
+
+The API has outages, and a failed download would cancel the whole pipeline run. Because these are
+historical values that no longer change, ``data/reference/worldbank_wdi_snapshot.json`` keeps a
+versioned copy (each country's latest value per indicator, which is all the loader reads).
+``fetch_worldbank`` uses it when the API is unavailable; refresh it with
+``covid-pipeline worldbank-snapshot`` after adding an indicator.
 """
 
 from __future__ import annotations
@@ -21,11 +27,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .config import RAW_WORLDBANK_PATH, WORLDBANK_URL
+from .config import RAW_WORLDBANK_PATH, WORLDBANK_SNAPSHOT_PATH, WORLDBANK_URL
 
 log = logging.getLogger(__name__)
 
 YEARS = "2010:2019"
+# A healthy API serves every indicator in about a minute. Past this, treat it as down.
+FETCH_BUDGET_SECONDS = 300
 
 # Simulator name -> WDI code.
 STATIC_INDICATORS = {
@@ -59,7 +67,8 @@ GROUP_MIDPOINT = {g: (int(g[:2]) + 2.5 if g != "80UP" else 85.0) for g in AGE_GR
 ISO3_OVERRIDES = {"XKX": "OWID_KOS"}
 
 
-def _get_json(url: str, timeout: int = 60, attempts: int = 3) -> list:
+def _get_json(url: str, timeout: int = 30, attempts: int = 3) -> list:
+    """One API page. Kept short: a hanging API should reach the snapshot fallback in a couple of minutes."""
     request = urllib.request.Request(url, headers={"User-Agent": "covid19-healthcare-burden-pipeline"})
     for attempt in range(1, attempts + 1):
         try:
@@ -86,21 +95,65 @@ def _fetch_indicator(code: str) -> list[dict]:
     return rows
 
 
-def fetch_worldbank(dest: Path = RAW_WORLDBANK_PATH) -> None:
-    """Download every indicator and write them to ``dest`` atomically (all or nothing)."""
-    indicators = {}
-    for code in INDICATORS.values():
-        indicators[code] = _fetch_indicator(code)
-    payload = {
-        "fetched_at_utc": datetime.now(UTC).isoformat(timespec="seconds"),
-        "years": YEARS,
-        "indicators": indicators,
-    }
+def _write_atomically(payload: dict, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", dir=dest.parent, delete=False, suffix=".part") as tmp:
-        json.dump(payload, tmp)
+        json.dump(payload, tmp, separators=(",", ":"))
     Path(tmp.name).replace(dest)
+
+
+def fetch_worldbank(
+    dest: Path = RAW_WORLDBANK_PATH, snapshot_path: Path = WORLDBANK_SNAPSHOT_PATH, budget: float = FETCH_BUDGET_SECONDS
+) -> str:
+    """Download every indicator and write them to ``dest`` atomically (all or nothing).
+
+    Returns "live", or "snapshot" if the API was unavailable (down, or too slow to finish within
+    ``budget`` seconds) and the versioned copy was used instead.
+    """
+    started = time.monotonic()
+    try:
+        indicators = {}
+        for code in INDICATORS.values():
+            if time.monotonic() - started > budget:
+                raise TimeoutError(f"only {len(indicators)} of {len(INDICATORS)} indicators after {budget:.0f} seconds")
+            indicators[code] = _fetch_indicator(code)
+    except (OSError, ValueError) as error:  # network errors and timeouts are OSErrors; bad payloads are ValueErrors
+        if not snapshot_path.exists():
+            raise
+        payload = json.loads(snapshot_path.read_text())
+        missing = sorted(set(INDICATORS.values()) - set(payload["indicators"]))
+        if missing:
+            raise ValueError(f"World Bank API unavailable and the snapshot lacks {missing}") from error
+        log.warning("World Bank API unavailable (%s). Using the snapshot fetched %s", error, payload.get("fetched_at_utc"))
+        _write_atomically(payload, dest)
+        return "snapshot"
+    _write_atomically({"fetched_at_utc": datetime.now(UTC).isoformat(timespec="seconds"), "years": YEARS, "indicators": indicators}, dest)
     log.info("World Bank: %s indicators written to %s", len(indicators), dest)
+    return "live"
+
+
+def snapshot(payload: dict) -> dict:
+    """The smallest payload that loads to the same profile: each country's latest value per indicator."""
+    slim = {}
+    for code, rows in payload["indicators"].items():
+        latest: dict[str, dict] = {}
+        for r in rows:
+            iso = r.get("countryiso3code")
+            if not iso or r.get("value") is None:
+                continue
+            if iso not in latest or int(r["date"]) > int(latest[iso]["date"]):
+                latest[iso] = {"countryiso3code": iso, "date": r["date"], "value": r["value"]}
+        slim[code] = [latest[iso] for iso in sorted(latest)]
+    return {"fetched_at_utc": payload["fetched_at_utc"], "years": payload["years"], "snapshot": True, "indicators": slim}
+
+
+def write_snapshot(raw: Path = RAW_WORLDBANK_PATH, dest: Path = WORLDBANK_SNAPSHOT_PATH) -> None:
+    """Refresh the versioned copy from the last successful download."""
+    payload = json.loads(Path(raw).read_text())
+    if payload.get("snapshot"):
+        raise ValueError(f"{raw} is itself the snapshot: download from the live API first (covid-pipeline ingest)")
+    _write_atomically(snapshot(payload), dest)
+    log.info("World Bank snapshot written to %s", dest)
 
 
 def _latest(rows: list[dict]) -> pd.Series:

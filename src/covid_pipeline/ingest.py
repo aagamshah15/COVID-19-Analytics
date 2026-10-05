@@ -125,8 +125,9 @@ def fetch_sources(offline: bool = False) -> dict:
     manifest = {}
     for name, (url, path) in sources.items():
         log.info("Downloading %s from %s", name, url)
+        served_from = "live"
         if name == "worldbank":
-            fetch_worldbank(path)
+            served_from = fetch_worldbank(path)
         else:
             _download(url, path)
         manifest[name] = {
@@ -136,6 +137,8 @@ def fetch_sources(offline: bool = False) -> dict:
             "bytes": path.stat().st_size,
             "sha256": _sha256(path),
         }
+        if served_from != "live":  # the API was down: say so where the provenance is recorded
+            manifest[name]["served_from"] = served_from
     RAW_MANIFEST_PATH.write_text(json.dumps(manifest, indent=2))
     return manifest
 

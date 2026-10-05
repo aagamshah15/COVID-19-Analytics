@@ -14,7 +14,7 @@ from .config import COUNTRY_PROFILE_PATH, DEFAULT_END_DATE, DEFAULT_START_DATE, 
 from .simulator import features as sim_features
 from .simulator import fixtures as sim_fixtures
 from .simulator import train as sim_train
-from .worldbank import load_worldbank
+from .worldbank import load_worldbank, write_snapshot
 
 log = logging.getLogger("covid_pipeline")
 
@@ -52,6 +52,7 @@ def _parser() -> argparse.ArgumentParser:
     fc(sub.add_parser("forecast", help="backtest + forecast weekly deaths"))
     sub.add_parser("export", help="write the dashboard extract (actuals + forecasts)")
     sub.add_parser("web-export", help="write the web dashboard data files (dashboard/public/data)")
+    sub.add_parser("worldbank-snapshot", help="refresh the versioned World Bank copy used when the API is down")
     sub.add_parser("sim-features", help="build the simulator's country profiles and weekly panel")
     sub.add_parser("sim-train", help="fit, calibrate and validate the simulator; write simulator.json")
     sub.add_parser("sim-fixtures", help="write the golden scenarios the browser engine is tested against")
@@ -114,6 +115,8 @@ def main(argv: list[str] | None = None) -> None:
         _forecast(args, transform.load_curated()[1])
     elif args.command == "web-export":
         web.export_web_data()
+    elif args.command == "worldbank-snapshot":
+        write_snapshot()
     elif args.command == "sim-features":
         sim_features.build_sim_tables(*transform.load_curated(), load_worldbank())
     elif args.command == "sim-train":

@@ -26,6 +26,8 @@ RAW_WORLDBANK_PATH = RAW_DIR / "worldbank_wdi.json"
 RAW_MANIFEST_PATH = RAW_DIR / "manifest.json"
 # Static reference data, committed (regenerate with scripts/country_centroids.mjs).
 CENTROIDS_PATH = DATA_DIR / "reference" / "country_centroids.csv"
+# Versioned copy of the World Bank indicators, used when the live API is down (see worldbank.py).
+WORLDBANK_SNAPSHOT_PATH = DATA_DIR / "reference" / "worldbank_wdi_snapshot.json"
 
 # Curated layer.
 DAILY_PATH = PROCESSED_DIR / "covid_daily.parquet"
