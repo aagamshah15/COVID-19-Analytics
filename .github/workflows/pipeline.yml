@@ -1,6 +1,6 @@
 name: pipeline
 
-# Rebuilds every layer from the live OWID + WHO sources, then builds the dashboard and
+# Rebuilds every layer from the live OWID, WHO and World Bank sources, trains the simulator, then builds the dashboard and
 # publishes it to GitHub Pages. Requires Pages to be enabled with "GitHub Actions" as the source.
 on:
   workflow_dispatch:
@@ -21,7 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The run now trains the simulator too (about 12 minutes on a laptop, longer on a shared runner).
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
