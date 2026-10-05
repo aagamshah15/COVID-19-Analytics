@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve as resolvePath } from "node:path";
-import { describe, expect, it } from "vitest";
-import { prepare } from "./model";
+import { beforeAll, describe, expect, it } from "vitest";
+import { prepare, type SimModel } from "./model";
 import { simulate, summarise } from "./montecarlo";
 import { READY } from "./scenarios";
 import { decodeSpec, EMPTY_SPEC, encodeSpec, isComplete, resolve } from "./spec";
@@ -45,7 +45,11 @@ describe("plain language", () => {
 const modelPath = resolvePath(__dirname, "../../../public/data/simulator.json");
 
 describe.skipIf(!existsSync(modelPath))("ready-made scenarios with the trained model", () => {
-  const model = prepare(JSON.parse(readFileSync(modelPath, "utf8")));
+  // A skipped suite's body still runs to collect its tests, so the file is only read in beforeAll.
+  let model!: SimModel;
+  beforeAll(() => {
+    model = prepare(JSON.parse(readFileSync(modelPath, "utf8")));
+  });
 
   it.each(READY.map((s) => [s.id, s] as const))("%s resolves to a known country and disease, and runs", (_id, ready) => {
     expect(isComplete(ready.spec)).toBe(true);

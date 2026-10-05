@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve as resolvePath } from "node:path";
-import { describe, expect, it } from "vitest";
-import { prepare } from "./model";
+import { beforeAll, describe, expect, it } from "vitest";
+import { prepare, type SimModel } from "./model";
 import { capacityOf, ensemble, sensitivity, simulate, summarise, withoutResponse } from "./montecarlo";
 import { buildPdf, clean, pdfFilename } from "./pdf";
 import { READY } from "./scenarios";
@@ -16,7 +16,11 @@ describe("pdf text", () => {
 const modelPath = resolvePath(__dirname, "../../../public/data/simulator.json");
 
 describe.skipIf(!existsSync(modelPath))("pdf report with the trained model", () => {
-  const model = prepare(JSON.parse(readFileSync(modelPath, "utf8")));
+  // A skipped suite's body still runs to collect its tests, so the file is only read in beforeAll.
+  let model!: SimModel;
+  beforeAll(() => {
+    model = prepare(JSON.parse(readFileSync(modelPath, "utf8")));
+  });
 
   it.each(READY.map((s) => [s.id, s] as const))("%s builds a multi-page report", (_id, ready) => {
     const r = resolve(model, ready.spec);

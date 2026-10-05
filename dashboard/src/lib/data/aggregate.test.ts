@@ -1,10 +1,10 @@
 /**
  * Parity tests: the browser's aggregation must reproduce the SQL pack's numbers.
- * Runs against the real exported data (generate it with `covid-pipeline web-export`).
+ * Runs against the real exported data (generate it with `covid-pipeline web-export`); skipped without it.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   aggregateWeekly,
   countryPeriod,
@@ -34,11 +34,17 @@ function dataset(): Dataset {
   };
 }
 
-const data = dataset();
-const all = regionCountries(data, "all");
+let data!: Dataset;
+let all!: Country[];
 const close = (a: number, b: number, rel = 1e-6) => expect(Math.abs(a - b)).toBeLessThanOrEqual(Math.abs(b) * rel + 1e-6);
 
-describe("aggregation matches the SQL pack", () => {
+describe.skipIf(!existsSync(resolve(dir, "weekly.json")))("aggregation matches the SQL pack", () => {
+  // A skipped suite's body still runs to collect its tests, so the data is only read in beforeAll.
+  beforeAll(() => {
+    data = dataset();
+    all = regionCountries(data, "all");
+  });
+
   it("q01: total deaths and countries", () => {
     const kpi = data.sql.q01_executive_kpis[0];
     close(totalDeaths(data, all), kpi.total_deaths as number);

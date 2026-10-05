@@ -4,14 +4,19 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
-import { ageStructureFor, analogs, buildPlace, featureVector, learnedFor, prepare, settingsFor, waveSeverity } from "./model";
+import { beforeAll, describe, expect, it } from "vitest";
+import { ageStructureFor, analogs, buildPlace, type CountryProfile, featureVector, learnedFor, prepare, settingsFor, type SimModel, waveSeverity } from "./model";
 
 const path = resolve(__dirname, "../../../public/data/simulator.json");
 
 describe.skipIf(!existsSync(path))("trained simulator model", () => {
-  const model = prepare(JSON.parse(readFileSync(path, "utf8")));
-  const india = model.byIso.get("IND")!;
+  // A skipped suite's body still runs to collect its tests, so the file is only read in beforeAll.
+  let model!: SimModel;
+  let india!: CountryProfile;
+  beforeAll(() => {
+    model = prepare(JSON.parse(readFileSync(path, "utf8")));
+    india = model.byIso.get("IND")!;
+  });
 
   it("standardises features exactly as training did", () => {
     for (const country of model.countries.slice(0, 40)) {
