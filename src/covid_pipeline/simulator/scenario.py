@@ -31,7 +31,7 @@ from dataclasses import asdict, dataclass, field, replace
 import numpy as np
 
 from .engine import N_BANDS, EngineInputs
-from .models import hemisphere_day, season_weight
+from .season import hemisphere_day, season_weight
 
 BANDS = ["0-19", "20-39", "40-59", "60-79", "80+"]
 # Day of the year each month starts (non-leap year). A table rather than arithmetic so the browser

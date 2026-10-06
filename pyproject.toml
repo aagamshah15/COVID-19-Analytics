@@ -14,7 +14,7 @@ dependencies = [
     "pyarrow>=15",
     "duckdb>=1.1",
     "scikit-learn>=1.4",
-    "scipy>=1.11",
+    "scipy>=1.15",
     "statsmodels>=0.14",
     "pycountry>=23.12",
 ]
@@ -22,7 +22,8 @@ dependencies = [
 [project.optional-dependencies]
 postgres = ["sqlalchemy>=2.0", "psycopg2-binary>=2.9"]
 notebooks = ["jupyter", "matplotlib>=3.8", "seaborn>=0.13"]
-dev = ["pytest>=8", "ruff>=0.6"]
+api = ["fastapi>=0.142", "uvicorn>=0.30"]
+dev = ["pytest>=8", "ruff>=0.6", "httpx2>=2"]  # httpx2: the test client for the api
 
 [project.scripts]
 covid-pipeline = "covid_pipeline.cli:main"
@@ -32,6 +33,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # the api package lives at the repository root
 
 [tool.ruff]
 line-length = 140
