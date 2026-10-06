@@ -1,0 +1,89 @@
+name: api
+
+# Tests the simulator API, builds its image and deploys it to Cloud Run (docs/simulator/CLOUD.md).
+# Does nothing until the repository variables printed by infra/gcp_setup.sh exist. Signs in to
+# Google Cloud with Workload Identity Federation: no key is stored in GitHub.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "src/covid_pipeline/simulator/engine.py"
+      - "src/covid_pipeline/simulator/scenario.py"
+      - "src/covid_pipeline/simulator/season.py"
+      - "src/covid_pipeline/simulator/analysis.py"
+      - ".github/workflows/api.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: api-deploy
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION || 'us-central1' }}
+  SERVICE: simulator-api
+  REPOSITORY: simulator
+
+jobs:
+  deploy:
+    if: vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Test
+        run: |
+          pip install -e ".[dev,api]"
+          pytest -q tests/test_api.py tests/test_sim_analysis.py tests/test_sim_fixtures.py
+
+      # The model card behind /model is the one the live dashboard uses. The service works without it.
+      - name: Bundle the model card
+        run: |
+          mkdir -p api/model
+          url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/simulator.json"
+          if ! curl -fsSL --retry 3 "$url" -o api/model/simulator.json; then
+            rm -f api/model/simulator.json
+            echo "::warning::No model card at $url; /model will answer 404."
+          fi
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push the image
+        run: |
+          image="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE}:${GITHUB_SHA}"
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+          docker build -f api/Dockerfile -t "$image" .
+          docker push "$image"
+          echo "IMAGE=$image" >> "$GITHUB_ENV"
+
+      # The flags are the cost guards: one small instance at most, none when idle, billed only
+      # while serving requests.
+      - name: Deploy
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "$PROJECT_ID" --region "$REGION" --image "$IMAGE" \
+            --service-account "simulator-api-runtime@${PROJECT_ID}.iam.gserviceaccount.com" \
+            --allow-unauthenticated --ingress all \
+            --cpu 1 --memory 1Gi --concurrency 4 \
+            --min-instances 0 --max-instances 1 \
+            --cpu-throttling --cpu-boost --timeout 120 \
+            --quiet
+
+      - name: Check the live service
+        run: |
+          url="$(gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format 'value(status.url)')"
+          curl -fsS --retry 5 --retry-delay 3 --retry-all-errors "$url/health"
+          echo "Deployed to $url" >> "$GITHUB_STEP_SUMMARY"

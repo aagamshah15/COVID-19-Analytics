@@ -131,3 +131,26 @@ Rejected options: **Observable Framework** (its releases have slowed since March
 | **2. Explore** | Where it hit (map + ranks), Country page and drill-through, Chart/Table toggles | Any country can be reached in 2 clicks; the map is keyboard-navigable. |
 | **3. Analysis** | Vaccines & severity, Hospital strain, Outlook | Every quoted number matches the SQL pack (tests). |
 | **4. Trust and ship** | Data & methods page, a11y pass (keyboard, contrast, reduced motion, screen-reader labels), mobile pass, Playwright smoke, GitHub Pages workflow | The public URL is live and linked from the README. |
+
+## 8. Addendum: the Simulator page
+
+Added after the seven pages above shipped. The other pages describe what happened; this one lets a visitor ask what could happen. The modelling is covered in the README and [`docs/simulator/RESEARCH.md`](../simulator/RESEARCH.md); this section records the design decisions.
+
+**Who it is for.** The first version put every control and every chart on one screen and updated live. A review found it overwhelming for anyone who is not a modeller, so the page was rebuilt around four rules:
+
+1. **Start blank, with examples.** Nothing is pre-selected. Six ready-made scenarios, each one sentence long, run in one click.
+2. **Three plain questions, then an explicit Run.** Where? What disease? How does the place respond? Each step offers everyday choices (a country, "Like measles", "Lock down early") and keeps the numeric controls behind "Fine-tune". Edits change a draft; only Run applies it, so the results on screen always match the settings shown.
+3. **The story first.** Results open with one sentence in everyday numbers ("about half of all people would catch it"), four large figures, one chart with the "if nothing were done" path for contrast, the three inputs that matter most in words, and a plain statement that this is a scenario, not a prediction.
+4. **Depth on demand.** Detailed charts, the sensitivity analysis, the classifier's second opinion, similar real countries, the written report and the model card sit in one collapsed "Explore the details" section.
+
+**What carries over from the visual system.** Each metric keeps its hue (deaths oxblood, infections indigo, vaccination teal, hospital load amber). Uncertainty is a band in the same hue, never a second colour. Every chart keeps its table view. The scenario lives in the URL, so a link reproduces exactly what was seen; the URL only ever holds a scenario that was run.
+
+**What is new.**
+
+| | |
+|---|---|
+| Data | `simulator.json` (about 435 KB) is loaded only on this page: learned constants, uncertainty spreads, 14 disease presets, 236 country profiles and the validation scores. |
+| Compute | The engine runs in a Web Worker: 200 Monte Carlo draws and a one-at-a-time sensitivity analysis, without blocking the page. A short running screen names each stage. |
+| Report | A three-page PDF with vector charts, built in the browser with jsPDF. The library loads only when the button is pressed. |
+| Cloud | An optional panel inside the details sends the scenario to a small service for 5,000 draws and Sobol indices ([`docs/simulator/CLOUD.md`](../simulator/CLOUD.md)). It appears only if the service is configured and answering, and it is the only part of the site that sends a visitor's choices anywhere. |
+| Tests | Golden scenarios hold the TypeScript engine to the Python reference; a schema generated from the service's request models checks every scenario the page can build. |
