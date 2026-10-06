@@ -1,6 +1,6 @@
 /**
  * The optional cloud service (api/, docs/simulator/CLOUD.md): the Python reference engine running
- * 5,000 draws and a Sobol sensitivity analysis, more than is comfortable in a browser tab.
+ * thousands of draws and a Sobol sensitivity analysis, more than is comfortable in a browser tab.
  *
  * The page never depends on it. Without `VITE_SIM_API_URL` at build time the feature is off; if
  * the service doesn't answer, the panel that offers it stays hidden.
@@ -58,14 +58,22 @@ async function request(path: string, timeout: number, init: RequestInit = {}): P
   }
 }
 
-let health: Promise<boolean> | null = null;
+/** What the service says about itself: how many draws a deep analysis runs. */
+export interface CloudService {
+  draws: number;
+}
 
-/** Whether the service answers. Asked once per visit; the question also wakes a sleeping service. */
-export function cloudAvailable(): Promise<boolean> {
-  if (!cloudConfigured) return Promise.resolve(false);
+let health: Promise<CloudService | null> | null = null;
+
+/** The service if it answers, else null. Asked once per visit; the question also wakes a sleeping service. */
+export function cloudService(): Promise<CloudService | null> {
+  if (!cloudConfigured) return Promise.resolve(null);
   health ??= request("/health", HEALTH_TIMEOUT_MS)
-    .then((r) => r.ok)
-    .catch(() => false);
+    .then(async (r) => {
+      const body = r.ok ? await r.json() : null;
+      return body?.status === "ok" && body.deep_draws > 0 ? { draws: body.deep_draws as number } : null;
+    })
+    .catch(() => null);
   return health;
 }
 

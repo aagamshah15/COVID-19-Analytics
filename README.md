@@ -156,7 +156,7 @@ The Simulator page answers "what if a new disease reached a country like this on
 
 **Scenarios run in the browser.** The engine is written twice: a Python reference used for calibration, and a TypeScript port that runs in a Web Worker with 200 Monte Carlo draws. Golden scenarios hold the two to the same outputs, to within one part in a billion ([`engine.test.ts`](dashboard/src/lib/sim/engine.test.ts)).
 
-**An optional cloud API** serves the Python engine from Google Cloud Run's free tier for heavier work: 5,000 draws and Sobol sensitivity indices. The page never depends on it. Its endpoints, cost guards and setup are in [`docs/simulator/CLOUD.md`](docs/simulator/CLOUD.md).
+**An optional cloud API** serves the Python engine from Google Cloud Run's free tier for heavier work: 2,000 draws and Sobol sensitivity indices. The page never depends on it. Its endpoints, cost guards and setup are in [`docs/simulator/CLOUD.md`](docs/simulator/CLOUD.md).
 
 ## CLI
 

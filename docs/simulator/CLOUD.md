@@ -2,7 +2,7 @@
 
 The simulator page runs every scenario in the visitor's browser. This service is an optional extra: the Python reference engine behind a small web API on Google Cloud Run. It does two things a browser tab does badly:
 
-- **A deeper analysis.** 5,000 Monte Carlo runs instead of 200, plus Sobol sensitivity indices, which measure how much of the uncertainty in deaths each input accounts for, alone and in combination with the others.
+- **A deeper analysis.** 2,000 Monte Carlo runs instead of 200, plus Sobol sensitivity indices, which measure how much of the uncertainty in deaths each input accounts for, alone and in combination with the others.
 - **Programmatic access.** Anyone can post a scenario and get the reference engine's answer as JSON.
 
 **The dashboard never depends on it.** If the service is not configured, not deployed, asleep, over its limits or deleted, the page hides the "deeper look" panel and everything else works as before.
@@ -11,10 +11,10 @@ The simulator page runs every scenario in the visitor's browser. This service is
 
 | | |
 |---|---|
-| `GET /health` | Liveness, and the version of the bundled model card |
+| `GET /health` | Liveness, the number of draws a deep analysis runs, and the version of the bundled model card |
 | `GET /model` | The model card: learned constants, uncertainty spreads, validation scores and the disease presets |
 | `POST /simulate` | One scenario: headline numbers, the no-response comparison, daily series, and ranges from up to 500 draws |
-| `POST /analyze/deep` | 5,000-draw ranges and Sobol indices for one scenario |
+| `POST /analyze/deep` | 2,000-draw ranges and Sobol indices for one scenario |
 | `GET /docs` | Interactive documentation generated from the request models |
 
 A scenario is the same JSON the browser's engine consumes: a place, a pathogen, a response, a variant, the learned constants, where each learned value came from, and the spreads to draw from. [`api/scenario.schema.json`](../../api/scenario.schema.json) describes it and bounds every number. In that JSON, `null` means "never" or "lifelong" (JSON cannot carry infinity).
@@ -32,7 +32,7 @@ The easiest way to get a full scenario is to run one on the simulator page and c
 
 - `tests/test_api.py` posts the golden scenarios and checks the answers against the same fixtures the browser engine is tested against.
 - `dashboard/src/lib/sim/cloud.test.ts` checks every scenario the page can build (all countries, diseases, plans and vaccine choices) against the schema generated from the service's request models, so the two sides cannot drift apart unnoticed.
-- The "deeper look" panel shows the browser's ranges beside the service's. They come from two implementations drawing their own random inputs. On 5,000 draws each they agree to within a few percent.
+- The "deeper look" panel shows the browser's ranges beside the service's. They come from two implementations drawing their own random inputs. In a test with 5,000 draws on each side they agreed to within a few percent.
 
 ## What it costs
 
@@ -104,7 +104,9 @@ docker run --rm -p 8080:8080 --cpus 1 --memory 1g simulator-api
 
 To point a local dashboard at it, put `VITE_SIM_API_URL=http://localhost:8080` in `dashboard/.env.local` and restart `npm run dev`.
 
-Measured in that container on a laptop: about 1 second to start, 6 to 17 seconds for a deep analysis of a one- to three-year scenario, and a 117 MB image. Cloud Run's processors are slower, so expect roughly double.
+The image is 117 MB and starts in about a second.
+
+**Speed on Cloud Run.** One of its vCPUs runs this engine about six times slower than a recent laptop core: measured on the live service, one run of a two-year scenario costs about 6 ms and of a three-year scenario about 9 ms. The size of a deep analysis is set from that. 2,000 draws plus 3,328 runs for the Sobol design (256 base samples for 11 inputs) come to roughly 15, 30 and 50 seconds for one-, two- and three-year scenarios. Both sizes are settings (`DEEP_DRAWS`, `SOBOL_N`); halving `SOBOL_N` saves a third of the time, but the ranking of the inputs then changes from seed to seed.
 
 Every limit can be changed without a rebuild by setting an environment variable on the service, for example `DEEP_PER_DAY=50` or `COMPUTE_SECONDS_PER_DAY=2000` (see `Settings` in [`api/main.py`](../../api/main.py)). After changing the request models, regenerate the schema with `python -m api.schemas`; a test fails if it is stale.
 
