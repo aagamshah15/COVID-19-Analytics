@@ -40,7 +40,7 @@ def body() -> dict:
 
 
 def test_health_and_index(client):
-    assert client.get("/health").json() == {"status": "ok", "version": "1.0.0", "model_version": None}
+    assert client.get("/health").json() == {"status": "ok", "version": "1.0.0", "model_version": None, "deep_draws": 200}
     assert "/analyze/deep" in client.get("/").json()["endpoints"]
 
 

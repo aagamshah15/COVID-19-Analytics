@@ -1,20 +1,20 @@
 <script lang="ts">
   /**
-   * The optional cloud analysis: 5,000 runs on the Python reference engine and a breakdown of where
+   * The optional cloud analysis: thousands of runs on the Python reference engine and a breakdown of where
    * the uncertainty comes from. Shown only when the service is configured and answering; everything
    * else on the page is computed in the browser and never waits for it.
    */
   import { onDestroy } from "svelte";
   import { compact, count, pct } from "../../lib/format";
-  import { cloudAvailable, CloudError, combinedShare, type DeepResult, deepAnalysis, waitWords } from "../../lib/sim/cloud";
+  import { CloudError, type CloudService, cloudService, combinedShare, type DeepResult, deepAnalysis, waitWords } from "../../lib/sim/cloud";
   import type { EnsembleResult, ScenarioRun, Summary } from "../../lib/sim/montecarlo";
   import ChartFrame from "../ChartFrame.svelte";
   import SobolBars from "./SobolBars.svelte";
 
   let { run, ensemble }: { run: ScenarioRun; ensemble: EnsembleResult } = $props();
 
-  let available = $state(false);
-  cloudAvailable().then((ok) => (available = ok));
+  let service = $state<CloudService | null>(null);
+  cloudService().then((s) => (service = s));
 
   let running = $state(false);
   let seconds = $state(0);
@@ -56,21 +56,21 @@
   let top = $derived(result?.sobol.factors[0] ?? null);
 </script>
 
-{#if available}
+{#if service}
   <section class="section deep" aria-live="polite">
     <h2>A deeper look, run in the cloud</h2>
     {#if !result}
       <p class="sub">
-        Your browser tried {count(ensemble.draws)} versions of this scenario. A small cloud service can try 5,000, and work out how much of the uncertainty
+        Your browser tried {count(ensemble.draws)} versions of this scenario. A small cloud service can try {count(service.draws)}, and work out how much of the uncertainty
         each input is responsible for, on its own and in combination with the others.
       </p>
       <div class="go">
         <button onclick={start} disabled={running}>{running ? `Running… ${seconds} s` : problem ? "Try again" : "Run the deeper analysis"}</button>
         <span class="note">
           {#if running}
-            Trying 5,000 versions of this scenario, then a few thousand more to see which inputs matter.
+            Trying {count(service.draws)} versions of this scenario, then a few thousand more to see which inputs matter.
           {:else}
-            Sends this scenario's settings, and nothing about you, to the service. Takes 10 to 40 seconds.
+            Sends this scenario's settings, and nothing about you, to the service. Takes 15 to 50 seconds.
           {/if}
         </span>
       </div>

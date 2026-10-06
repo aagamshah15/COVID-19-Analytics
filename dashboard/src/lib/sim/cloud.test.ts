@@ -139,29 +139,34 @@ describe("talking to the cloud service", () => {
     vi.stubGlobal("fetch", fetch);
     const cloud = await load("");
     expect(cloud.cloudConfigured).toBe(false);
-    expect(await cloud.cloudAvailable()).toBe(false);
+    expect(await cloud.cloudService()).toBeNull();
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("asks once whether the service is up, and treats any failure as down", async () => {
-    const fetch = vi.fn().mockResolvedValue(answer(200, { status: "ok" }));
+  it("asks the service once what it offers, and treats any failure as down", async () => {
+    const fetch = vi.fn().mockResolvedValue(answer(200, { status: "ok", deep_draws: 2000 }));
     vi.stubGlobal("fetch", fetch);
     const cloud = await load();
-    expect(await cloud.cloudAvailable()).toBe(true);
-    expect(await cloud.cloudAvailable()).toBe(true);
+    expect(await cloud.cloudService()).toEqual({ draws: 2000 });
+    expect(await cloud.cloudService()).toEqual({ draws: 2000 });
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch.mock.calls[0][0]).toBe("https://api.example/health");
 
-    vi.resetModules();
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
-    expect(await (await load()).cloudAvailable()).toBe(false);
-    vi.resetModules();
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(answer(404)));
-    expect(await (await load()).cloudAvailable()).toBe(false);
+    const down = [
+      vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
+      vi.fn().mockResolvedValue(answer(404)),
+      vi.fn().mockResolvedValue(new Response("<html>not the service</html>", { status: 200 })),
+      vi.fn().mockResolvedValue(answer(200, { status: "ok" })), // an older build that doesn't say what it runs
+    ];
+    for (const broken of down) {
+      vi.resetModules();
+      vi.stubGlobal("fetch", broken);
+      expect(await (await load()).cloudService()).toBeNull();
+    }
   });
 
   it("posts the scenario and returns the analysis", async () => {
-    const result = { summary: {}, monte_carlo: { draws: 5000 }, sobol: { factors: [] }, ms: 12 };
+    const result = { summary: {}, monte_carlo: { draws: 2000 }, sobol: { factors: [] }, ms: 12 };
     const fetch = vi.fn().mockResolvedValue(answer(200, result));
     vi.stubGlobal("fetch", fetch);
     const cloud = await load();

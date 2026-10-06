@@ -152,5 +152,5 @@ Added after the seven pages above shipped. The other pages describe what happene
 | Data | `simulator.json` (about 435 KB) is loaded only on this page: learned constants, uncertainty spreads, 14 disease presets, 236 country profiles and the validation scores. |
 | Compute | The engine runs in a Web Worker: 200 Monte Carlo draws and a one-at-a-time sensitivity analysis, without blocking the page. A short running screen names each stage. |
 | Report | A three-page PDF with vector charts, built in the browser with jsPDF. The library loads only when the button is pressed. |
-| Cloud | An optional panel inside the details sends the scenario to a small service for 5,000 draws and Sobol indices ([`docs/simulator/CLOUD.md`](../simulator/CLOUD.md)). It appears only if the service is configured and answering, and it is the only part of the site that sends a visitor's choices anywhere. |
+| Cloud | An optional panel inside the details sends the scenario to a small service for 2,000 draws and Sobol indices ([`docs/simulator/CLOUD.md`](../simulator/CLOUD.md)). It appears only if the service is configured and answering, and it is the only part of the site that sends a visitor's choices anywhere. |
 | Tests | Golden scenarios hold the TypeScript engine to the Python reference; a schema generated from the service's request models checks every scenario the page can build. |

@@ -4,10 +4,10 @@ The dashboard runs every scenario in the browser and never depends on this servi
 two things the browser can't do well: a deep analysis (thousands of draws and Sobol sensitivity
 indices) and programmatic access to the reference engine.
 
-    GET  /health         liveness, and the version of the model card bundled with the image
+    GET  /health         liveness, the size of a deep analysis, and the bundled model card's version
     GET  /model          the bundled model card: learned constants, uncertainty and validation
     POST /simulate       run a scenario: headline numbers, daily series, optional Monte Carlo ranges
-    POST /analyze/deep   5,000-draw ranges and Sobol sensitivity indices for a scenario
+    POST /analyze/deep   2,000-draw ranges and Sobol sensitivity indices for a scenario
 
 A scenario is the JSON the browser's engine consumes; ``schemas.py`` bounds every number in it.
 Run locally with ``uvicorn api.main:app --reload --port 8080``; interactive docs are at ``/docs``.
@@ -77,7 +77,10 @@ class Settings:
     # It also includes 180,000 vCPU-seconds a month, about 5,800 a day. This leaves room for
     # start-ups and health checks.
     compute_seconds_per_day: int = 4000
-    deep_draws: int = 5000
+    # Sized by timing on Cloud Run, where one run of a two-year scenario takes about 6 ms: 2,000
+    # draws plus 3,328 runs for the Sobol design come to about half a minute. Halving sobol_n
+    # would save a third of that, but the ranking of the inputs then changes from seed to seed.
+    deep_draws: int = 2000
     sobol_n: int = 256
     deep_wait_seconds: float = 20.0
     model_card_path: Path = Path(__file__).parent / "model" / "simulator.json"
@@ -183,7 +186,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/health")
     def health() -> dict:
-        return {"status": "ok", "version": VERSION, "model_version": card["version"] if card else None}
+        return {"status": "ok", "version": VERSION, "model_version": card["version"] if card else None, "deep_draws": settings.deep_draws}
 
     @app.get("/model")
     def model() -> dict:
