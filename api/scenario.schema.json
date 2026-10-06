@@ -1,0 +1,903 @@
+{
+  "$defs": {
+    "CalibratedSpread": {
+      "additionalProperties": false,
+      "properties": {
+        "calibrated": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Calibrated",
+          "type": "number"
+        },
+        "predicted": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Predicted",
+          "type": "number"
+        }
+      },
+      "required": [
+        "calibrated",
+        "predicted"
+      ],
+      "title": "CalibratedSpread",
+      "type": "object"
+    },
+    "Constants": {
+      "additionalProperties": false,
+      "properties": {
+        "npi_coef": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Npi Coef",
+          "type": "number"
+        },
+        "fatigue_ratio": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Fatigue Ratio",
+          "type": "number"
+        },
+        "fatigue_start": {
+          "maximum": 36500,
+          "minimum": 0,
+          "title": "Fatigue Start",
+          "type": "number"
+        },
+        "fatigue_end": {
+          "maximum": 36500,
+          "minimum": 0,
+          "title": "Fatigue End",
+          "type": "number"
+        },
+        "awareness_deaths_pm": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1000000000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Awareness Deaths Pm"
+        },
+        "awareness_power": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Awareness Power",
+          "type": "number"
+        },
+        "covid_seasonality": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Covid Seasonality",
+          "type": "number"
+        },
+        "season_peak_day_north": {
+          "maximum": 366,
+          "minimum": 0,
+          "title": "Season Peak Day North",
+          "type": "number"
+        },
+        "icu_death_share": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Icu Death Share",
+          "type": "number"
+        },
+        "unmet_multiplier": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Unmet Multiplier",
+          "type": "number"
+        },
+        "child_acceptance_ratio": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Child Acceptance Ratio",
+          "type": "number"
+        },
+        "reference_shares": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 5,
+          "minItems": 5,
+          "title": "Reference Shares",
+          "type": "array"
+        },
+        "reference_means": {
+          "items": {
+            "maximum": 120,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 5,
+          "minItems": 5,
+          "title": "Reference Means",
+          "type": "array"
+        }
+      },
+      "required": [
+        "npi_coef",
+        "fatigue_ratio",
+        "fatigue_start",
+        "fatigue_end",
+        "awareness_deaths_pm",
+        "awareness_power",
+        "covid_seasonality",
+        "season_peak_day_north",
+        "icu_death_share",
+        "unmet_multiplier",
+        "child_acceptance_ratio",
+        "reference_shares",
+        "reference_means"
+      ],
+      "title": "Constants",
+      "type": "object"
+    },
+    "ObservedSpread": {
+      "additionalProperties": false,
+      "properties": {
+        "observed": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Observed",
+          "type": "number"
+        },
+        "predicted": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Predicted",
+          "type": "number"
+        }
+      },
+      "required": [
+        "observed",
+        "predicted"
+      ],
+      "title": "ObservedSpread",
+      "type": "object"
+    },
+    "Pathogen": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 120,
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "historical",
+            "hypothetical",
+            "blank"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "r0": {
+          "exclusiveMinimum": 0,
+          "maximum": 50,
+          "title": "R0",
+          "type": "number"
+        },
+        "latent_days": {
+          "maximum": 36500,
+          "minimum": 0.25,
+          "title": "Latent Days",
+          "type": "number"
+        },
+        "infectious_days": {
+          "maximum": 36500,
+          "minimum": 0.25,
+          "title": "Infectious Days",
+          "type": "number"
+        },
+        "ifr": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Ifr",
+          "type": "number"
+        },
+        "hosp": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Hosp",
+          "type": "number"
+        },
+        "age_profile": {
+          "enum": [
+            "steep",
+            "rises",
+            "w_shaped",
+            "young",
+            "flat"
+          ],
+          "title": "Age Profile",
+          "type": "string"
+        },
+        "hosp_days": {
+          "maximum": 36500,
+          "minimum": 0.25,
+          "title": "Hosp Days",
+          "type": "number"
+        },
+        "icu_share": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Icu Share",
+          "type": "number"
+        },
+        "immunity_days": {
+          "anyOf": [
+            {
+              "maximum": 36500,
+              "minimum": 0.25,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Immunity Days"
+        },
+        "seasonality": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: the amplitude learned for SARS-CoV-2",
+          "title": "Seasonality"
+        },
+        "vaccine_day": {
+          "anyOf": [
+            {
+              "maximum": 36500,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Vaccine Day"
+        },
+        "ve_infection": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Ve Infection",
+          "type": "number"
+        },
+        "ve_death": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Ve Death",
+          "type": "number"
+        },
+        "vaccine_immunity_days": {
+          "anyOf": [
+            {
+              "maximum": 36500,
+              "minimum": 0.25,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Vaccine Immunity Days"
+        },
+        "assumptions": {
+          "items": {
+            "maxLength": 80,
+            "type": "string"
+          },
+          "maxItems": 40,
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "sources": {
+          "items": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "maxItems": 40,
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "r0",
+        "latent_days",
+        "infectious_days",
+        "ifr",
+        "hosp",
+        "age_profile",
+        "hosp_days",
+        "icu_share",
+        "immunity_days",
+        "seasonality",
+        "vaccine_day",
+        "ve_infection",
+        "ve_death",
+        "vaccine_immunity_days"
+      ],
+      "title": "Pathogen",
+      "type": "object"
+    },
+    "Place": {
+      "additionalProperties": false,
+      "properties": {
+        "population": {
+          "maximum": 20000000000.0,
+          "minimum": 1,
+          "title": "Population",
+          "type": "number"
+        },
+        "age_shares": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 5,
+          "minItems": 5,
+          "title": "Age Shares",
+          "type": "array"
+        },
+        "age_means": {
+          "items": {
+            "maximum": 120,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 5,
+          "minItems": 5,
+          "title": "Age Means",
+          "type": "array"
+        },
+        "beds_per_thousand": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Beds Per Thousand",
+          "type": "number"
+        },
+        "latitude": {
+          "anyOf": [
+            {
+              "maximum": 90,
+              "minimum": -90,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: no seasonality",
+          "title": "Latitude"
+        },
+        "bed_availability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Bed Availability",
+          "type": "number"
+        },
+        "icu_share_of_beds": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Icu Share Of Beds",
+          "type": "number"
+        },
+        "transmission": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000,
+          "title": "Transmission",
+          "type": "number"
+        },
+        "severity": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000,
+          "title": "Severity",
+          "type": "number"
+        },
+        "adherence": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Adherence",
+          "type": "number"
+        },
+        "awareness": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000,
+          "title": "Awareness",
+          "type": "number"
+        },
+        "access": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Access",
+          "type": "number"
+        },
+        "death_reporting": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Death Reporting",
+          "type": "number"
+        },
+        "vaccine_acceptance": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Vaccine Acceptance",
+          "type": "number"
+        },
+        "vaccine_capacity": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Vaccine Capacity",
+          "type": "number"
+        }
+      },
+      "required": [
+        "population",
+        "age_shares",
+        "age_means",
+        "beds_per_thousand",
+        "latitude",
+        "bed_availability",
+        "icu_share_of_beds",
+        "transmission",
+        "severity",
+        "adherence",
+        "awareness",
+        "access",
+        "death_reporting",
+        "vaccine_acceptance",
+        "vaccine_capacity"
+      ],
+      "title": "Place",
+      "type": "object"
+    },
+    "Response": {
+      "additionalProperties": false,
+      "properties": {
+        "segments": {
+          "items": {
+            "$ref": "#/$defs/Segment"
+          },
+          "maxItems": 24,
+          "title": "Segments",
+          "type": "array"
+        },
+        "adaptive": {
+          "title": "Adaptive",
+          "type": "boolean"
+        },
+        "adaptive_on": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Adaptive On",
+          "type": "number"
+        },
+        "adaptive_off": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Adaptive Off",
+          "type": "number"
+        },
+        "adaptive_level": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Adaptive Level",
+          "type": "number"
+        },
+        "adaptive_min_days": {
+          "maximum": 1095,
+          "minimum": 0,
+          "title": "Adaptive Min Days",
+          "type": "number"
+        },
+        "fatigue": {
+          "title": "Fatigue",
+          "type": "boolean"
+        },
+        "awareness": {
+          "title": "Awareness",
+          "type": "boolean"
+        },
+        "isolation": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Isolation",
+          "type": "number"
+        },
+        "border_delay_days": {
+          "maximum": 1095,
+          "minimum": 0,
+          "title": "Border Delay Days",
+          "type": "number"
+        },
+        "surge": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Surge",
+          "type": "number"
+        },
+        "vaccine": {
+          "title": "Vaccine",
+          "type": "boolean"
+        },
+        "vaccine_day": {
+          "anyOf": [
+            {
+              "maximum": 36500,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: the pathogen's default",
+          "title": "Vaccine Day"
+        },
+        "vaccine_oldest_first": {
+          "title": "Vaccine Oldest First",
+          "type": "boolean"
+        },
+        "treatment_day": {
+          "anyOf": [
+            {
+              "maximum": 36500,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Treatment Day"
+        },
+        "treatment_effect": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Treatment Effect",
+          "type": "number"
+        },
+        "case_detection": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Case Detection",
+          "type": "number"
+        },
+        "seed_per_million": {
+          "exclusiveMinimum": 0,
+          "maximum": 100000.0,
+          "title": "Seed Per Million",
+          "type": "number"
+        },
+        "start_month": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Start Month",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "segments",
+        "adaptive",
+        "adaptive_on",
+        "adaptive_off",
+        "adaptive_level",
+        "adaptive_min_days",
+        "fatigue",
+        "awareness",
+        "isolation",
+        "border_delay_days",
+        "surge",
+        "vaccine",
+        "vaccine_day",
+        "vaccine_oldest_first",
+        "treatment_day",
+        "treatment_effect",
+        "case_detection",
+        "seed_per_million",
+        "start_month"
+      ],
+      "title": "Response",
+      "type": "object"
+    },
+    "Segment": {
+      "additionalProperties": false,
+      "properties": {
+        "start_day": {
+          "maximum": 1095,
+          "minimum": 0,
+          "title": "Start Day",
+          "type": "integer"
+        },
+        "end_day": {
+          "maximum": 1095,
+          "minimum": 0,
+          "title": "End Day",
+          "type": "integer"
+        },
+        "level": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Level",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start_day",
+        "end_day",
+        "level"
+      ],
+      "title": "Segment",
+      "type": "object"
+    },
+    "Sources": {
+      "additionalProperties": false,
+      "properties": {
+        "transmission": {
+          "enum": [
+            "calibrated",
+            "observed",
+            "predicted",
+            "user"
+          ],
+          "title": "Transmission",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "calibrated",
+            "observed",
+            "predicted",
+            "user"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "awareness": {
+          "enum": [
+            "calibrated",
+            "observed",
+            "predicted",
+            "user"
+          ],
+          "title": "Awareness",
+          "type": "string"
+        },
+        "reporting": {
+          "enum": [
+            "calibrated",
+            "observed",
+            "predicted",
+            "user"
+          ],
+          "title": "Reporting",
+          "type": "string"
+        },
+        "vaccine_acceptance": {
+          "enum": [
+            "calibrated",
+            "observed",
+            "predicted",
+            "user"
+          ],
+          "title": "Vaccine Acceptance",
+          "type": "string"
+        },
+        "vaccine_capacity": {
+          "enum": [
+            "calibrated",
+            "observed",
+            "predicted",
+            "user"
+          ],
+          "title": "Vaccine Capacity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transmission",
+        "severity",
+        "awareness",
+        "reporting",
+        "vaccine_acceptance",
+        "vaccine_capacity"
+      ],
+      "title": "Sources",
+      "type": "object"
+    },
+    "Uncertainty": {
+      "additionalProperties": false,
+      "properties": {
+        "log_transmission_sd": {
+          "$ref": "#/$defs/CalibratedSpread"
+        },
+        "log_severity_sd": {
+          "$ref": "#/$defs/CalibratedSpread"
+        },
+        "log_awareness_country_sd": {
+          "$ref": "#/$defs/CalibratedSpread"
+        },
+        "logit_reporting_sd": {
+          "$ref": "#/$defs/ObservedSpread"
+        },
+        "logit_vaccine_acceptance_sd": {
+          "$ref": "#/$defs/ObservedSpread"
+        },
+        "log_vaccine_capacity_sd": {
+          "$ref": "#/$defs/ObservedSpread"
+        },
+        "npi_coef_sd": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Npi Coef Sd",
+          "type": "number"
+        },
+        "log_awareness_sd": {
+          "anyOf": [
+            {
+              "maximum": 3,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Log Awareness Sd"
+        },
+        "seasonality_sd": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Seasonality Sd",
+          "type": "number"
+        },
+        "log_r0_sd": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Log R0 Sd",
+          "type": "number"
+        },
+        "log_ifr_sd": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Log Ifr Sd",
+          "type": "number"
+        },
+        "notes": {
+          "default": "",
+          "description": "Free text from the model card; ignored",
+          "maxLength": 400,
+          "title": "Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "log_transmission_sd",
+        "log_severity_sd",
+        "log_awareness_country_sd",
+        "logit_reporting_sd",
+        "logit_vaccine_acceptance_sd",
+        "log_vaccine_capacity_sd",
+        "npi_coef_sd",
+        "log_awareness_sd",
+        "seasonality_sd",
+        "log_r0_sd",
+        "log_ifr_sd"
+      ],
+      "title": "Uncertainty",
+      "type": "object"
+    },
+    "Variant": {
+      "additionalProperties": false,
+      "properties": {
+        "day": {
+          "anyOf": [
+            {
+              "maximum": 36500,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Day"
+        },
+        "transmission": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000,
+          "title": "Transmission",
+          "type": "number"
+        },
+        "severity": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000,
+          "title": "Severity",
+          "type": "number"
+        },
+        "escape": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Escape",
+          "type": "number"
+        }
+      },
+      "required": [
+        "day",
+        "transmission",
+        "severity",
+        "escape"
+      ],
+      "title": "Variant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One scenario, as the browser's engine consumes it.",
+  "properties": {
+    "place": {
+      "$ref": "#/$defs/Place"
+    },
+    "sources": {
+      "$ref": "#/$defs/Sources"
+    },
+    "pathogen": {
+      "$ref": "#/$defs/Pathogen"
+    },
+    "response": {
+      "$ref": "#/$defs/Response"
+    },
+    "variant": {
+      "$ref": "#/$defs/Variant"
+    },
+    "constants": {
+      "$ref": "#/$defs/Constants"
+    },
+    "uncertainty": {
+      "$ref": "#/$defs/Uncertainty"
+    },
+    "days": {
+      "maximum": 1095,
+      "minimum": 7,
+      "title": "Days",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "place",
+    "sources",
+    "pathogen",
+    "response",
+    "variant",
+    "constants",
+    "uncertainty",
+    "days"
+  ],
+  "title": "Scenario",
+  "type": "object"
+}

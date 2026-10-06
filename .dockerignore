@@ -1,0 +1,6 @@
+# The only image built from this repository is the simulator API (api/Dockerfile).
+*
+!api/
+!src/
+**/__pycache__/
+**/*.pyc

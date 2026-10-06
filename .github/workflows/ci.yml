@@ -14,9 +14,9 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,api]"
       - name: Lint
-        run: ruff check src tests
+        run: ruff check src tests api
       - name: Test
         run: pytest -q
 
@@ -35,5 +35,8 @@ jobs:
       - run: npm ci
       - name: Type-check
         run: npm run check
+      # Tests that need the exported data skip themselves here; the pipeline workflow runs them all.
+      - name: Test
+        run: npm test
       - name: Build
         run: npm run build
