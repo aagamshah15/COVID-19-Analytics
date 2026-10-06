@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Dataset } from "../../lib/data/types";
+  import { cloudConfigured } from "../../lib/sim/cloud";
   import type { EngineOutputs } from "../../lib/sim/engine";
   import { PRESET_ERA } from "../../lib/sim/model";
   import type { EnsembleResult, Summary, TornadoBar } from "../../lib/sim/montecarlo";
@@ -8,6 +9,7 @@
   import AgeBars from "./AgeBars.svelte";
   import Analogs from "./Analogs.svelte";
   import AreaStack, { type Layer } from "./AreaStack.svelte";
+  import DeepAnalysis from "./DeepAnalysis.svelte";
   import ModelCard from "./ModelCard.svelte";
   import Report from "./Report.svelte";
   import Tornado from "./Tornado.svelte";
@@ -19,6 +21,7 @@
     summary,
     ensemble,
     tornado,
+    explored,
     onpdf,
   }: {
     data: Dataset;
@@ -26,6 +29,8 @@
     summary: Summary;
     ensemble: EnsembleResult | null;
     tornado: { base: number; bars: TornadoBar[] } | null;
+    /** True once the visitor has opened the details: only then is the cloud service woken. */
+    explored: boolean;
     onpdf: () => Promise<void>;
   } = $props();
   let r = $derived(sim.result!);
@@ -94,6 +99,10 @@
     </p>
   {/if}
 </div>
+
+{#if cloudConfigured && explored && ensemble}
+  <DeepAnalysis run={r.run} {ensemble} />
+{/if}
 
 <section class="section">
   <h2>Countries like this one</h2>

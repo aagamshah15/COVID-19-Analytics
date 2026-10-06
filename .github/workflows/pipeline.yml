@@ -42,6 +42,9 @@ jobs:
           cache-dependency-path: dashboard/package-lock.json
       - name: Build dashboard
         working-directory: dashboard
+        env:
+          # Optional: the simulator's cloud API (docs/simulator/CLOUD.md). Unset, the page hides that button.
+          VITE_SIM_API_URL: ${{ vars.SIM_API_URL }}
         run: |
           npm ci
           npm test
