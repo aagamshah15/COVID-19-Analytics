@@ -44,6 +44,7 @@
   let noAction = $state<EngineOutputs | null>(null);
   let ensemble = $state<EnsembleResult | null>(null);
   let tornado = $state<{ base: number; bars: TornadoBar[] } | null>(null);
+  let explored = $state(false);
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   async function compute(id: number) {
@@ -130,14 +131,14 @@
   {:else}
     <Story {central} {noAction} {summary} {noActionSummary} {ensemble} {tornado} {capacity} onpdf={downloadReport} />
 
-    <details class="explore">
+    <details class="explore" ontoggle={(e) => (explored ||= e.currentTarget.open)}>
       <summary>
         <span>Explore the details</span>
         <small>Detailed charts, who is most at risk, what drives the result, similar real countries, the full report and how the model works</small>
       </summary>
       <div class="explore-body">
         <FullChart {central} {ensemble} {capacity} />
-        <Outcomes {data} {central} {summary} {ensemble} {tornado} onpdf={downloadReport} />
+        <Outcomes {data} {central} {summary} {ensemble} {tornado} {explored} onpdf={downloadReport} />
       </div>
     </details>
   {/if}

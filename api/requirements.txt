@@ -1,0 +1,6 @@
+# What the service image installs. The pipeline's own dependencies (pandas, scikit-learn, DuckDB
+# and the rest) are not needed to run scenarios, so the image stays small and starts fast.
+numpy==2.5.3
+scipy==1.18.1
+fastapi==0.142.2
+uvicorn==0.54.0

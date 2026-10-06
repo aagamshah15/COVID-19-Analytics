@@ -25,3 +25,6 @@ data/archive/
 data.zip
 warehouse/*.duckdb
 warehouse/*.duckdb.wal
+
+# The model card the API image bundles (fetched at deploy time)
+api/model/

@@ -95,7 +95,7 @@ export function perturb(s: ScenarioRun, normal: () => number): ScenarioRun {
   const constants = { ...s.constants };
   constants.npi_coef += normal() * u.npi_coef_sd;
   if (Number.isFinite(constants.awareness_deaths_pm) && u.log_awareness_sd) constants.awareness_deaths_pm *= Math.exp(normal() * u.log_awareness_sd);
-  constants.covid_seasonality = Math.max(0, constants.covid_seasonality + normal() * u.seasonality_sd);
+  constants.covid_seasonality = Math.min(1, Math.max(0, constants.covid_seasonality + normal() * u.seasonality_sd));
   const pathogen = { ...s.pathogen, r0: s.pathogen.r0 * Math.exp(normal() * u.log_r0_sd), ifr: s.pathogen.ifr * Math.exp(normal() * u.log_ifr_sd) };
   return { ...s, place, constants, pathogen };
 }

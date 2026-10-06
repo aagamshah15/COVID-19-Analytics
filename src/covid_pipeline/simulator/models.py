@@ -32,6 +32,8 @@ from sklearn.linear_model import LogisticRegression, RidgeCV
 from sklearn.metrics import confusion_matrix, f1_score, log_loss, mean_absolute_error, r2_score, roc_auc_score, silhouette_score
 from sklearn.model_selection import GroupKFold, KFold, cross_val_predict
 
+from .season import SEASON_FULL_LATITUDE, SEASON_TROPIC_LATITUDE, hemisphere_day, season_weight
+
 log = logging.getLogger(__name__)
 
 RANDOM_STATE = 42
@@ -55,21 +57,6 @@ FEATURES = [
 ]
 FEATURE_NAMES = [f[0] for f in FEATURES]
 ALPHAS = np.logspace(-2, 3, 30)
-# Seasonality is a temperate-zone effect: none inside the tropics, rising linearly to full
-# strength at 40 degrees (an assumption; the amplitude itself is estimated). A first version
-# ramped up from the equator, which gave India and Bangladesh a winter cycle they don't have.
-SEASON_TROPIC_LATITUDE = 23.5
-SEASON_FULL_LATITUDE = 40.0
-
-
-def season_weight(latitude):
-    span = SEASON_FULL_LATITUDE - SEASON_TROPIC_LATITUDE
-    return np.clip((np.abs(latitude) - SEASON_TROPIC_LATITUDE) / span, 0.0, 1.0)
-
-
-def hemisphere_day(day_of_year, latitude):
-    """Day of year shifted by half a year in the Southern Hemisphere, so both share one season."""
-    return np.where(np.asarray(latitude) < 0, (np.asarray(day_of_year) + 182.5) % 365, day_of_year)
 
 
 @dataclass
